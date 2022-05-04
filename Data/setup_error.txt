@@ -1,0 +1,39 @@
+(base) C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive>python setup.py build_ext --inplace
+Compiling MicroDrive_v1.pyx because it changed.
+[1/1] Cythonizing MicroDrive_v1.pyx
+C:\Users\Congreve Optics\anaconda3\lib\site-packages\Cython\Compiler\Main.py:369: FutureWarning: Cython directive 'language_level' not set, using 2 for now (Py2). This will change in a later release! File: C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive\MicroDrive_v1.pyx
+  tree = Parsing.p_module(s, pxd, full_module_name)
+
+Error compiling Cython file:
+------------------------------------------------------------
+...
+import numpy as np
+#import time
+#import matplotlib.pyplot as plt
+
+class MicroDrive(object):
+    def __init__(self, mcl_lib = "C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive"):
+                                   ^
+------------------------------------------------------------
+
+MicroDrive_v1.pyx:111:36: Invalid unicode escape '\U'
+
+Traceback (most recent call last):
+  File "C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive\setup.py", line 9, in <module>
+    ext_modules = cythonize("MicroDrive_v1.pyx")
+  File "C:\Users\Congreve Optics\anaconda3\lib\site-packages\Cython\Build\Dependencies.py", line 1102, in cythonize
+    cythonize_one(*args)
+  File "C:\Users\Congreve Optics\anaconda3\lib\site-packages\Cython\Build\Dependencies.py", line 1225, in cythonize_one
+    raise CompileError(None, pyx_file)
+Cython.Compiler.Errors.CompileError: MicroDrive_v1.pyx
+
+(base) C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive>python setup.py build_ext --inplace
+Compiling MicroDrive_v1.pyx because it changed.
+[1/1] Cythonizing MicroDrive_v1.pyx
+C:\Users\Congreve Optics\anaconda3\lib\site-packages\Cython\Compiler\Main.py:369: FutureWarning: Cython directive 'language_level' not set, using 2 for now (Py2). This will change in a later release! File: C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive\MicroDrive_v1.pyx
+  tree = Parsing.p_module(s, pxd, full_module_name)
+running build_ext
+building 'MicroDrive_v1' extension
+error: Unable to find vcvarsall.bat
+
+(base) C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive>
