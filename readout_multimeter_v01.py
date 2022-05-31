@@ -35,12 +35,12 @@ ReturnValue = v34401A.query('*IDN?')
 
 # scan through spatial locations
 motor = MicroDrive()
-acq     = 40
+acq     = 150
 t       = 0
 while t < acq:
     # stage control
     t += 1
-    x = -0.01
+    x = -0.1
     y = 0
     z = 0
     print(x,y,z)
