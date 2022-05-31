@@ -108,7 +108,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 
 class MicroDrive(object):
-    def __init__(self, mcl_lib = "C:\\Users\\Congreve Optics\\Documents\\GitHub\\MCLMicroDrive"):
+    def __init__(self, mcl_lib = "C:/Program Files/Mad City Labs/MicroDrive/MicroDrive"):
         """
         Here, we initialize the object
         - Loading the DLL
