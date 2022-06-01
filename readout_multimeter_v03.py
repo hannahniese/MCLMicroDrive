@@ -2,7 +2,7 @@
 """
 Created on Tue May 31 12:28:44 2022
 
-@author: Congreve Optics
+@author: niese
 """
 
 import pyvisa as visa
