@@ -37,25 +37,24 @@ ReturnValue = v34401A.query('*IDN?')
 
 # scan through spatial locations
 motor = MicroDrive()
-acq     = 8
-rows    = 8
+acq     = 20
+rows    = 20
 t       = 0
 p       = 0
 xmem    = 0
 ymem    = 0
 counter = 0
-
+x = 0
 
 file.write('No of points in x' + str(acq) + 'no of points in y' + str(rows) + '\n')
 
 while t < acq:
     t += 1
-    x = 0
     xmem = xmem + x
     while p < rows:
         # stage control
         p += 1
-        y = 0.2
+        y = -0.1
         ymem = ymem + y
         z = 0
         print(x,y,z)
@@ -74,7 +73,7 @@ while t < acq:
         dataArray.append(float(measuredValue))           # 
         file.write(str(xmem) + ', ' + str(ymem) + ', ' + str(z) + ', ' + '{0}\n'.format(str(measuredValue)))
     motor.move(0,-rows*y,0)
-    x = x + 0.2
+    x = x - 0.1
     ymem = 0
     p = 0
 v34401A.close()    # Close our connection to the instrument
@@ -91,7 +90,7 @@ plt.show()
 
 #%% plot 2D heatmap
 
-array = np.zeros((100,4))
+array = np.zeros((400,4))
 array[:,0] = coord_x
 array[:,1] = coord_y
 #array[:,2] = coord_z
@@ -113,7 +112,7 @@ x = coord_x
 y = coord_y
  
 # plotting
-ax.plot3D(x, y, z, 'green')
+ax.scatter(x, y, z, c=z, cmap='viridis')
 ax.set_title('3D line plot geeks for geeks')
 plt.show()
 
