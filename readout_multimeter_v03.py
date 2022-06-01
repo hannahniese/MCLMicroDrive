@@ -16,6 +16,7 @@ import numpy as np
 dataTimeString = datetime.datetime.now().strftime("%y%m%d%H%M%S")
 fileNameString = dataTimeString + "_data.txt"
 figureNameString = dataTimeString + "_figure.png"
+figureName3D = dataTimeString + "_3Dfigure.png"
 
 # initialize arrays
 measuredValue = 0.00000
@@ -37,14 +38,15 @@ ReturnValue = v34401A.query('*IDN?')
 
 # scan through spatial locations
 motor = MicroDrive()
-acq     = 20
-rows    = 20
+acq     = 15
+rows    = 15
 t       = 0
 p       = 0
 xmem    = 0
 ymem    = 0
 counter = 0
 x = 0
+y = 0
 
 file.write('No of points in x' + str(acq) + 'no of points in y' + str(rows) + '\n')
 
@@ -54,11 +56,11 @@ while t < acq:
     while p < rows:
         # stage control
         p += 1
-        y = -0.1
         ymem = ymem + y
+        y = -0.05
         z = 0
         print(x,y,z)
-        motor.move(x,y,z)
+        motor.move(0,y,z)
         counter += 1
         
         # acquisition control
@@ -72,9 +74,10 @@ while t < acq:
         coord_y.append(p)                 # Store our data in a local array
         dataArray.append(float(measuredValue))           # 
         file.write(str(xmem) + ', ' + str(ymem) + ', ' + str(z) + ', ' + '{0}\n'.format(str(measuredValue)))
-    motor.move(0,-rows*y,0)
-    x = x - 0.1
+    x = 0.05
+    motor.move(x,-rows*y,0)
     ymem = 0
+    y = 0
     p = 0
 v34401A.close()    # Close our connection to the instrument
 rm.close()
@@ -114,6 +117,7 @@ y = coord_y
 # plotting
 ax.scatter(x, y, z, c=z, cmap='viridis')
 ax.set_title('3D line plot geeks for geeks')
+plt.savefig(figureName3D)
 plt.show()
 
     
