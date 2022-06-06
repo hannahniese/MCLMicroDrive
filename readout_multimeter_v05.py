@@ -54,7 +54,41 @@ y = 0
 
 
 #%% iterate through points on a rectangular square
+
+    xstep = 0.01
+    ystep = 0.01
+    xsign = 1
+    ysign = -1
+    xcoord = 0.2
+    ycoord = -0.8
+    zcoord = -1
+    c = 0
+    
+    #motor.getposition()
+    acq=50
+    
+    motor.move(xcoord, ycoord, zcoord)
+    measure(xcoord, ycoord, zcoord, c)
 while t < acq:
+    
+    
+
+    
+    while c < acq:
+        c += 1
+        print(c)
+        for i in range(c):
+            xcoord = xcoord + xstep*xsign
+            motor.move(xcoord, ycoord, zcoord)
+            measure(xcoord, ycoord, zcoord, c)
+        for i in range(c):
+            ycoord = ycoord + ystep*ysign
+            motor.move(xcoord, ycoord, zcoord)
+            measure(xcoord, ycoord, zcoord, c)
+        xsign = xsign * -1
+        ysign = ysign * -1 
+    
+    
     t += 1
     xmem = xmem + x
     while p < rows:
@@ -67,17 +101,8 @@ while t < acq:
         motor.move(0,y,z)
         counter += 1
         
-        # acquisition control
-        temp_values = v34401A.query_ascii_values(':MEASure:VOLTage:DC? %s,%s' % ('AUTO', 'MAX'))  #DC voltage measurements using the MIN V range with MAX mV resolution. Then make and read one measurement
-        measuredValue = temp_values[0]
-        print('Voltage:  {0}'.format(str(measuredValue)))   # Commenting out prints increases acquistion speed
-        print('p = ' + str(p) + ', t = ' + str(t) + ', acq ' + str(counter) + '/' + str(acq*rows))
-        print('x = ' + str(xmem) + ', y = ' + str(ymem))              # print progress
-        acquisitionArray.append(t)        # Store our data in a local array
-        coord_x.append(t)                 # Store our data in a local array
-        coord_y.append(p)                 # Store our data in a local array
-        dataArray.append(float(measuredValue))           # 
-        file.write(str(xmem) + ', ' + str(ymem) + ', ' + str(z) + ', ' + '{0}\n'.format(str(measuredValue)))
+        measure()
+
     x = 0.05
     motor.move(x,-rows*y,0)
     ymem = 0
@@ -107,17 +132,17 @@ def measure(xcoord, ycoord, zcoord, c):
     
     return measuredValue
 
-xstep = 0.01
-ystep = 0.01
+xstep = 0.1
+ystep = 0.1
 xsign = 1
 ysign = -1
-xcoord = 0.2
-ycoord = -0.8
+xcoord = 1
+ycoord = -0.9
 zcoord = -1
 c = 0
 
 #motor.getposition()
-acq=50
+acq=20
 
 motor.move(xcoord, ycoord, zcoord)
 measure(xcoord, ycoord, zcoord, c)
