@@ -6,13 +6,14 @@ Created on Wed Jun  1 14:15:40 2022
 """
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 from scipy import constants
 import os
 
 
 ### Importing E-field data
 masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive"
-file        =   '220606141302_data'
+file        =   '220606110017_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -25,9 +26,11 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 #%% plotting trajectories
 dim=len(data)
 
+
 plt.plot(data[:,1], data[:,2], color='green')
 plt.scatter(data[:,4], data[:,5], s=7, color='blue')
 
+plt.axis('equal')
 plt.xlabel('x-coordinate')
 plt.ylabel('y-coordinate')
 plt.title('Acquired datapoints: %d' % dim) 
