@@ -13,7 +13,7 @@ import os
 
 ### Importing E-field data
 masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive"
-file        =   '220606110017_data'
+file        =   '220608145332_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
