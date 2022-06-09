@@ -64,17 +64,17 @@ def measure(xcoord, ycoord, zcoord, c):
     
     return measuredValue
 
-xstep = 0.03
-ystep = 0.03
+xstep = 0.01
+ystep = 0.01
 xsign = 1
 ysign = -1
-xcoord = 2.3
-ycoord = -3
-zcoord = -8
+xcoord = 2.25
+ycoord = -2.9
+zcoord = -6.9
 c = 0
 
 #motor.getposition()
-acq=50
+acq=70
 
 motor.move(xcoord, ycoord, zcoord)
 measure(xcoord, ycoord, zcoord, c)
@@ -111,7 +111,7 @@ plt.ylabel('y-coordinate')
 plt.title('Acquired datapoints: %d' % dim) 
 
 #os.chdir(masterpath)
-plt.savefig('%s_points.png' % file, dpi=600)
+plt.savefig('%s_points.png' % dataTimeString, dpi=600)
 
 
 
@@ -130,7 +130,7 @@ ax.set_zlabel('Intensity [mV]')
 plt.show()
 
 #os.chdir(masterpath)
-plt.savefig('%s_values.png' % file, dpi=600)
+plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
 
 
 
