@@ -1,0 +1,1 @@
+Voltage = 3.3, Current = 14.4, Pinhole = 15um 
