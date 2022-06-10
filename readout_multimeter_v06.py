@@ -70,7 +70,7 @@ xsign = 1
 ysign = -1
 xcoord = 2.25
 ycoord = -2.9
-zcoord = -6.9
+zcoord = -7.3
 c = 0
 
 #motor.getposition()
