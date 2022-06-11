@@ -37,7 +37,7 @@ motor = MicroDrive()
 counter = 0
 
 # write vital parameters of the measurement into the file
-file.write('Voltage = 3.3, Current = 14.4, Pinhole = 15um \n')
+file.write('Voltage = 3.8, Current = 20.0, Pinhole = 15um \n')
 
 
 
@@ -56,48 +56,59 @@ def measure(xcoord, ycoord, zcoord, c):
     ypos = position[1]
     zpos = position[2]
     print(str(position) + ', ' + str(measuredValue))      # print progress
-    acquisitionArray.append(t)                            # Store our data in a local array
-    coord_x.append(xcoord)                                     # Store our data in a local array
-    coord_y.append(ycoord)                                     # Store our data in a local array
-    dataArray.append(float(measuredValue))           # 
     file.write(str(c) + ', ' + str(xcoord) + ', ' + str(ycoord) + ', ' + str(zcoord) + ', ' + str(xpos) + ', ' + str(ypos) + ', ' + str(zpos) + ', ' '{0}\n'.format(str(measuredValue)))
     
     return measuredValue
 
-xstep = 0.01
-ystep = 0.01
+xstep = 0.0005
+ystep = 0.0005
+zstep = 0.02
 xsign = 1
 ysign = -1
-xcoord = 2.25
-ycoord = -2.9
-zcoord = -7.3
+xc = 6.53
+yc = -1.86
+
+xcoord = 6.53
+ycoord = -1.86
+zcoord = -7.47
 c = 0
+d = 0
 
 #motor.getposition()
-acq=70
+acq     =   120
+planes  =   10
 
 motor.move(xcoord, ycoord, zcoord)
 measure(xcoord, ycoord, zcoord, c)
 
-while c < acq:
-    c += 1
-    print(c)
-    for i in range(c):
-        xcoord = xcoord + xstep*xsign
-        motor.move(xcoord, ycoord, zcoord)
-        measure(xcoord, ycoord, zcoord, c)
-    for i in range(c):
-        ycoord = ycoord + ystep*ysign
-        motor.move(xcoord, ycoord, zcoord)
-        measure(xcoord, ycoord, zcoord, c)
-    xsign = xsign * -1
-    ysign = ysign * -1    
+while d < planes:
+    d += 1
+    while c < acq:
+        c += 1
+        print(c)
+        for i in range(c):
+            xcoord = xcoord + xstep*xsign
+            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+            #motor.move(xcoord, ycoord, zcoord)
+            measure(xcoord, ycoord, zcoord, c)
+        for i in range(c):
+            ycoord = ycoord + ystep*ysign
+            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+            #motor.move(xcoord, ycoord, zcoord)
+            measure(xcoord, ycoord, zcoord, c)
+        xsign = xsign * -1
+        ysign = ysign * -1    
+    zcoord = zcoord + d*zstep
+    xcoord = xc
+    ycoord = yc
 v34401A.close()    # Close our connection to the instrument
 rm.close()
+
+
+data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
     
 #%% plotting trajectories
 
-data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
 
 dim=len(data)
 
@@ -120,10 +131,29 @@ plt.close()
 
 x = data[:,4]
 y = data[:,5]
-z = data[:,7]*1000 # convert to mV
+z = data[:,6]
+I = data[:,7]*1000 # convert to mV
+
+
+plt.scatter(x,y, c=I, cmap='viridis', s=7)
+plt.axis('equal')
+plt.xlabel('x-coordinate [mm]')
+plt.ylabel('y-coordinate [mm]')
+plt.cbar()
+
+#os.chdir(outpath)
+plt.savefig('%s_2D.png' % dataTimeString, dpi=600)
+
+
+#%%
+
+
+
+
+
 
 ax = plt.axes(projection='3d')
-ax.scatter(x,y,z, c=z, cmap='viridis', linewidth=0.5)
+ax.scatter(x,y,I, c=I, cmap='viridis', linewidth=0.5)
 ax.set_xlabel('x-coordinate')
 ax.set_ylabel('y-coordinate')
 ax.set_zlabel('Intensity [mV]')
@@ -131,6 +161,8 @@ plt.show()
 
 #os.chdir(masterpath)
 plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
+
+
 
 
 

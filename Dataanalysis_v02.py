@@ -10,6 +10,43 @@ from mpl_toolkits import mplot3d
 from scipy import constants
 import os
 
+# close all open plot windows
+plt.close('all')
+
+Directory = 'C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive'
+Files = listdir(Directory)
+
+Files = [(Directory + scanfile) for scanfile in Files if '220608' in scanfile and 'data' in scanfile]
+Nf = len(Files)
+
+
+def plotplane(datafile):
+    
+    data = ImportData(DataFile)                      # measured data
+    
+    x = data[:,4]                                    # assign data
+    y = data[:,5]
+    z = data[:,6]
+    I = data[:,7]*1000 # convert to mV
+    
+    plt.scatter(x,y, c=z, cmap='viridis', s=7)
+    plt.axis('equal')
+    plt.xlabel('x-coordinate [mm]')
+    plt.ylabel('y-coordinate [mm]')
+    plt.cbar()
+    
+    os.chdir(outpath)
+    plt.savefig('%s_2D.png' % file, dpi=600)
+
+
+
+for i in range(0,Nf):
+    Res1 = AnalyzeRFAPotentialSweep(Files[i])
+
+
+
+
+#%% manual stuff
 
 ### Importing E-field data
 masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive"
