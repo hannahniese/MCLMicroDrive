@@ -13,7 +13,8 @@ import os
 # close all open plot windows
 plt.close('all')
 
-Directory = 'C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive'
+#Directory = 'C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive'
+Directory = 'C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive'
 Files = listdir(Directory)
 
 Files = [(Directory + scanfile) for scanfile in Files if '220608' in scanfile and 'data' in scanfile]
@@ -49,8 +50,9 @@ for i in range(0,Nf):
 #%% manual stuff
 
 ### Importing E-field data
-masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive"
-file        =   '220613163829_data'
+#masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive"
+masterpath  =  r"C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive"
+file        =   '220608175029_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -78,8 +80,8 @@ plt.xlabel('x-coordinate')
 plt.ylabel('y-coordinate')
 plt.title('Acquired datapoints: %d' % dim) 
 
-os.chdir(masterpath)
-plt.savefig('%s_points.png' % file, dpi=600)
+os.chdir(outpath)
+plt.savefig('%s_points_1.png' % file, dpi=600)
 
 
 
@@ -88,25 +90,25 @@ plt.close()
 
 
 ax = plt.axes(projection='3d')
-ax.scatter(x,y,I, c=I, cmap='viridis', linewidth=0.3)
+ax.scatter(x,y,I, c=I, cmap='viridis', linewidth=0.3, vmin=-9.5, vmax=-7)
 ax.set_xlabel('x-coordinate [mm]')
 ax.set_ylabel('y-coordinate [mm]')
 ax.set_zlabel('Intensity [mV]')
 plt.show()
 
-os.chdir(masterpath)
-plt.savefig('%s_values.png' % file, dpi=600)
+os.chdir(outpath)
+plt.savefig('%s_values_1.png' % file, dpi=600)
 
 #%% plotting data as heatmap
 
-plt.scatter(x,y, c=z, cmap='viridis', s=7)
+plt.scatter(x,y, c=I, cmap='viridis', s=30, vmin=-9.5, vmax=-7)
 plt.axis('equal')
 plt.xlabel('x-coordinate [mm]')
 plt.ylabel('y-coordinate [mm]')
-plt.cbar()
+plt.colorbar()
 
 os.chdir(outpath)
-plt.savefig('%s_2D.png' % file, dpi=600)
+plt.savefig('%s_2D_1.png' % file, dpi=600)
 
 
 #%% plot multiple measurements
