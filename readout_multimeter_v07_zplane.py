@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May 31 12:28:44 2022
+Created on Wed Jun 15 18:56:07 2022
 
-@author: niese
+@author: Hannah Niese
 """
+
+
 
 import pyvisa as visa
 import time
@@ -12,6 +14,10 @@ import datetime
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import numpy as np
+
+##### INITIALIZE READOUT OF THE MULTIMETER
+
+
 
 # Generate the name of the data file based on the start of the script
 dataTimeString      =   datetime.datetime.now().strftime("%y%m%d%H%M%S")
@@ -33,13 +39,12 @@ file    =   open(fileNameString, 'w')
 ReturnValue = v34401A.query('*IDN?')
 
 # initialize stage 
+# run the stage class before running this
 motor = MicroDrive()
 counter = 0
 
 # write vital parameters of the measurement into the file
-file.write('Voltage = 3.8, Current = 20.0, Pinhole = 15um \n')
-
-
+file.write('Voltage = 3.9, Current = 20.8, Pinhole = 15um \n')
 
 
 
@@ -82,22 +87,22 @@ def measure(xcoord, ycoord, zcoord, c):
 
 #%% xy plane
 
-xstep = 0.005
-ystep = 0.005
+xstep = 0.01
+ystep = 0.01
 zstep = 0.02
 xsign = 1
 ysign = -1
 xc = 9.77
-yc = -3.7
+yc = -3.8
 
 xcoord = 9.77
-ycoord = -3.7
-zcoord = 5.565
+ycoord = -3.78
+zcoord = 3.24
 c = 0
 d = 0
 
 #motor.getposition()
-acq     =   100
+acq     =   40
 planes  =   1
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
@@ -130,10 +135,62 @@ rm.close()
 
 data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
 
-#%% xz plane
+#%% plotting trajectories
 
-xstep = 0.03
-zstep = 0.03
+
+dim=len(data)
+
+
+plt.plot(data[:,1], data[:,2], color='green')
+plt.scatter(data[:,4], data[:,5], s=7, color='blue')
+
+plt.axis('equal')
+plt.xlabel('x-coordinate')
+plt.ylabel('y-coordinate')
+plt.title('Acquired datapoints: %d' % dim) 
+
+#os.chdir(masterpath)
+plt.savefig('%s_points.png' % dataTimeString, dpi=600)
+
+
+
+# plotting 2d heatmap at real coordinates
+plt.close()
+
+x = data[:,4]
+y = data[:,5]
+z = data[:,6]
+I = data[:,7]*1000 # convert to mV
+
+
+plt.scatter(x,y, c=I, cmap='viridis', s=7)
+plt.axis('equal')
+plt.xlabel('x-coordinate [mm]')
+plt.ylabel('y-coordinate [mm]')
+plt.colorbar()
+
+#os.chdir(outpath)
+plt.savefig('%s_2D.png' % dataTimeString, dpi=600)
+
+
+#%% plotting 3d image
+
+
+ax = plt.axes(projection='3d')
+ax.scatter(x,y,I, c=I, cmap='viridis', linewidth=0.5)
+ax.set_xlabel('x-coordinate')
+ax.set_ylabel('y-coordinate')
+ax.set_zlabel('Intensity [mV]')
+plt.show()
+
+#os.chdir(masterpath)
+plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
+
+
+#%% XZ XZ XZ XZ XZXZXZXZXZXZXZXZXZXZ 
+
+xstep = 0.01
+zstep = 0.01
 
 xsign = 1
 zsign = -1
@@ -141,12 +198,12 @@ zsign = -1
 
 xcoord = 9.77
 ycoord = -3.7
-zcoord = 5.1
+zcoord = 3.3
 c = 0
 d = 0
 
 #motor.getposition()
-acq     =   50
+acq     =   90
 planes  =   1
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
@@ -195,7 +252,7 @@ plt.savefig('%s_points.png' % dataTimeString, dpi=600)
 
 
 
-#%% plotting 3d image at real coordinates
+#%% plotting 2d heatmap at real coordinates
 plt.close()
 
 x = data[:,4]
@@ -204,7 +261,7 @@ z = data[:,6]
 I = data[:,7]*1000 # convert to mV
 
 
-plt.scatter(x,z, c=I, cmap='viridis', s=20, vmin=-9.5, vmax=-6.3)
+plt.scatter(x,z, c=I, cmap='viridis', s=7)
 plt.axis('equal')
 plt.xlabel('x-coordinate [mm]')
 plt.ylabel('z-coordinate [mm]')
@@ -214,11 +271,7 @@ plt.colorbar()
 plt.savefig('%s_2D.png' % dataTimeString, dpi=600)
 
 
-#%%
-
-
-
-
+#%% plotting 3d image
 
 
 ax = plt.axes(projection='3d')
@@ -230,105 +283,3 @@ plt.show()
 
 #os.chdir(masterpath)
 plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
-
-
-
-
-
-#%% old stuff
-
-#%% iterate through points on a rectangular square
-
-xstep = 0.01
-ystep = 0.01
-xsign = 1
-ysign = -1
-xcoord = 4
-ycoord = 3
-zcoord = -2
-c = 0
-    
-#motor.getposition()
-acq=50
-    
-motor.move(xcoord, ycoord, zcoord)
-measure(xcoord, ycoord, zcoord, c)
-
-while t < acq:
-    
-        t += 1
-        print(t)
-        for i in range(c):
-            xcoord = xcoord + xstep*t
-            motor.move(xcoord, ycoord, zcoord)
-            measure(xcoord, ycoord, zcoord, c)
-        for i in range(c):
-            ycoord = ycoord + ystep*ysign
-            motor.move(xcoord, ycoord, zcoord)
-            measure(xcoord, ycoord, zcoord, c)
-        xsign = xsign * -1
-        ysign = ysign * -1 
-    
-    
-    t += 1
-    xmem = xmem + x
-    while p < rows:
-        # stage control
-        p += 1
-        ymem = ymem + y
-        y = -0.05
-        z = 0
-        print(x,y,z)
-        motor.move(0,y,z)
-        counter += 1
-        
-        measure()
-
-    x = 0.05
-    motor.move(x,-rows*y,0)
-    ymem = 0
-    y = 0
-    p = 0
-v34401A.close()    # Close our connection to the instrument
-rm.close()
-#%%
-
-
-# Generate quick plot
-plt.xlabel('x-coordinate')
-plt.ylabel('Voltage')
-plt.title('HP 34401A Data')
-plt.plot(coord_x,dataArray)
-plt.savefig(figureNameString)
-plt.show()
-
-#%% plot 2D heatmap
-
-array = np.zeros((400,4))
-array[:,0] = coord_x
-array[:,1] = coord_y
-#array[:,2] = coord_z
-array[:,3] = dataArray
-
-# importing mplot3d toolkits, numpy and matplotlib
-from mpl_toolkits import mplot3d
-import numpy as np
-import matplotlib.pyplot as plt
- 
-fig = plt.figure()
- 
-# syntax for 3-D projection
-ax = plt.axes(projection ='3d')
- 
-# defining all 3 axes
-z = dataArray
-x = coord_x
-y = coord_y
- 
-# plotting
-ax.scatter(x, y, z, c=z, cmap='viridis')
-ax.set_title('3D line plot geeks for geeks')
-plt.savefig(figureName3D)
-plt.show()
-
-    

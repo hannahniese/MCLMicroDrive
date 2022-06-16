@@ -10,11 +10,13 @@ from mpl_toolkits import mplot3d
 from scipy import constants
 import os
 
+
+#%% import multiple plots
 # close all open plot windows
 plt.close('all')
 
-#Directory = 'C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive'
-Directory = 'C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive'
+Directory = 'C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive'
+#Directory = 'C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive'
 Files = listdir(Directory)
 
 Files = [(Directory + scanfile) for scanfile in Files if '220608' in scanfile and 'data' in scanfile]
@@ -42,7 +44,7 @@ def plotplane(datafile):
 
 
 for i in range(0,Nf):
-    Res1 = AnalyzeRFAPotentialSweep(Files[i])
+    Res1 = plotplane(Files[i])
 
 
 
@@ -50,8 +52,8 @@ for i in range(0,Nf):
 #%% manual stuff
 
 ### Importing E-field data
-#masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive"
-masterpath  =  r"C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive"
+masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive"
+#masterpath  =  r"C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive"
 file        =   '220608175029_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
