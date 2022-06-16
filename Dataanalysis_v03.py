@@ -54,7 +54,7 @@ for i in range(0,Nf):
 ### Importing E-field data
 masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_06_16_10x"
 #masterpath  =  r"C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive"
-file        =   '220616142654_data'
+file        =   '220616133256_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -62,13 +62,34 @@ if os.path.isdir(outpath) == False:
     os.mkdir(outpath)
     
     
-data    = np.loadtxt(datafile, delimiter=',',  skiprows=3)
+data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
+
+#%% normal dataset
 
 x = data[:,4]
 y = data[:,5]
 z = data[:,6]
 I = data[:,7]*1000 # convert to mV
+
+#%%
+
+x = data[0:6480,4]
+y = data[0:6480,5]
+z = data[0:6480,6]
+I = data[0:6480,7]*1000 # convert to mV
+
+#%%
+x = data[6480:12960,4]
+y = data[6480:12960,5]
+z = data[6480:12960,6]
+I = data[6480:12960,7]*1000 # convert to mV
+
+#%%
+x = data[12960:19441,4]
+y = data[12960:19441,5]
+z = data[12960:19441,6]
+I = data[12960:19441,7]*1000 # convert to mV
 
 #%% plotting trajectories
 dim=len(data)
@@ -92,7 +113,7 @@ plt.close()
 
 
 ax = plt.axes(projection='3d')
-ax.scatter(x,y,I, c=I, cmap='viridis', linewidth=0.3, vmin=-9.5, vmax=-7)
+ax.scatter(x,y,I, c=I, cmap='viridis', linewidth=0.3, vmin=-9.5, vmax=-2)
 ax.set_xlabel('x-coordinate [mm]')
 ax.set_ylabel('y-coordinate [mm]')
 ax.set_zlabel('Intensity [mV]')
@@ -103,14 +124,14 @@ plt.savefig('%s_values_1.png' % file, dpi=600)
 
 #%% plotting data as heatmap
 
-plt.scatter(y, -x, c=I, cmap='viridis', marker="s", s=8, vmin=-9.5, vmax=-3)
+plt.scatter(x, y, c=I, cmap='viridis', marker="s", s=8, vmin=-9.5, vmax=-2.5)
 plt.axis('equal')
-plt.xlabel('y-coordinate [mm]')
-plt.ylabel('x-coordinate [mm]')
+plt.xlabel('x-coordinate [mm]')
+plt.ylabel('y-coordinate [mm]')
 plt.colorbar()
 
 os.chdir(outpath)
-plt.savefig('%s_2D_2.png' % file, dpi=600)
+plt.savefig('%s_2D_focus3.png' % file, dpi=600)
 
 
 #%% plot multiple measurements

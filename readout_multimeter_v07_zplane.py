@@ -87,25 +87,25 @@ def measure(xcoord, ycoord, zcoord, c):
 
 #%% xy plane
 
-xstep = 0.01
-ystep = 0.01
-zstep = 0.02
+xstep = 0.003
+ystep = 0.003
+zstep = 0.1
 xsign = 1
 ysign = -1
-xc = 9.77
-yc = -3.8
+xc = 9.72
+yc = -3.9
 
-xcoord = 9.77
-ycoord = -3.78
-zcoord = 3.24
+xcoord = 9.72
+ycoord = -3.9
+zcoord = 3.34
 c = 0
 d = 0
 
 #motor.getposition()
-acq     =   40
+acq     =   100
 planes  =   1
 
-motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
 measure(xcoord, ycoord, zcoord, c)
 
 while d < planes:
@@ -115,12 +115,12 @@ while d < planes:
         print(c)
         for i in range(c):
             xcoord = xcoord + xstep*xsign
-            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
             #motor.move(xcoord, ycoord, zcoord)
             measure(xcoord, ycoord, zcoord, c)
         for i in range(c):
             ycoord = ycoord + ystep*ysign
-            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
             #motor.move(xcoord, ycoord, zcoord)
             measure(xcoord, ycoord, zcoord, c)
         xsign = xsign * -1
@@ -189,24 +189,24 @@ plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
 
 #%% XZ XZ XZ XZ XZXZXZXZXZXZXZXZXZXZ 
 
-xstep = 0.01
-zstep = 0.01
+ystep = 0.05
+zstep = 0.05
 
-xsign = 1
+ysign = 1
 zsign = -1
 
 
-xcoord = 9.77
-ycoord = -3.7
-zcoord = 3.3
+xcoord = 9.7
+ycoord = -3.89
+zcoord = 3.24
 c = 0
 d = 0
 
 #motor.getposition()
-acq     =   90
+acq     =   40
 planes  =   1
 
-motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
 measure(xcoord, ycoord, zcoord, c)
 
 
@@ -214,16 +214,16 @@ while c < acq:
     c += 1
     print(c)
     for i in range(c):
-        xcoord = xcoord + xstep*xsign
-        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+        ycoord = ycoord + ystep*ysign
+        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
         #motor.move(xcoord, ycoord, zcoord)
         measure(xcoord, ycoord, zcoord, c)
     for i in range(c):
         zcoord = zcoord + zstep*zsign
-        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
         #motor.move(xcoord, ycoord, zcoord)
         measure(xcoord, ycoord, zcoord, c)
-    xsign = xsign * -1
+    ysign = ysign * -1
     zsign = zsign * -1    
 
 v34401A.close()    # Close our connection to the instrument
@@ -239,8 +239,8 @@ data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
 dim=len(data)
 
 
-plt.plot(data[:,1], data[:,3], color='green')
-plt.scatter(data[:,4], data[:,6], s=7, color='blue')
+plt.plot(data[:,2], data[:,3], color='green')
+plt.scatter(data[:,5], data[:,6], s=7, color='blue')
 
 plt.axis('equal')
 plt.xlabel('x-coordinate')
@@ -261,9 +261,9 @@ z = data[:,6]
 I = data[:,7]*1000 # convert to mV
 
 
-plt.scatter(x,z, c=I, cmap='viridis', s=7)
+plt.scatter(y,z, c=I, cmap='viridis', s=7)
 plt.axis('equal')
-plt.xlabel('x-coordinate [mm]')
+plt.xlabel('y-coordinate [mm]')
 plt.ylabel('z-coordinate [mm]')
 plt.colorbar()
 
