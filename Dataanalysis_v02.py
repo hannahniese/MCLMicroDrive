@@ -50,7 +50,7 @@ for i in range(0,Nf):
 
 ### Importing E-field data
 masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive"
-file        =   '220608172447_data'
+file        =   '220613163829_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'

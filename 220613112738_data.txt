@@ -1,0 +1,1 @@
+Voltage = 3.8, Current = 20.0, Pinhole = 10um 

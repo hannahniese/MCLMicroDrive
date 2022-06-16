@@ -45,40 +45,62 @@ file.write('Voltage = 3.8, Current = 20.0, Pinhole = 15um \n')
 
 #%% iterate through points in a spiral starting from the highest intensity
 
+def getPosition(self):
+        """
+        This function takes approximately 10ms.
+        """
+        
+        e1 = ctypes.pointer(ctypes.c_double())
+        e2 = ctypes.pointer(ctypes.c_double())
+        e3 = ctypes.pointer(ctypes.c_double())
+        e4 = ctypes.pointer(ctypes.c_double())
+        errorNumber = self.mcl.MCL_MDReadEncoders(e1, e2, e3, e4, self.handle)
+        if errorNumber != 0:
+            print('Error reading the encoders: ' + self.errorDictionary[errorNumber])
+        #print('Encoders: ' + str(np.round(e1.contents.value,4)) + ', ' + str(np.round(e2.contents.value,5)) + ', ' + str(np.round(e3.contents.value,5)))
+        position_temp = [e1.contents.value, e2.contents.value, e3.contents.value]
+        del e1
+        del e2
+        del e3
+        del e4
+        return position_temp
+
 def measure(xcoord, ycoord, zcoord, c):
     # acquisition control
     #temp_values = v34401A.query_ascii_values(':MEASure:VOLTage:DC? %s,%s' % ('MIN', 'MAX'))
     temp_values = v34401A.query_ascii_values(':MEASure:VOLTage:DC? %s,%s' % ('MIN', 'MAX'))  #DC voltage measurements using the MIN V range with MAX mV resolution. Then make and read one measurement
     measuredValue = temp_values[0]
-    print('Voltage:  {0}'.format(str(measuredValue)))     # Commenting out prints increases acquistion speed
+    #print('Voltage:  {0}'.format(str(measuredValue)))     # Commenting out prints increases acquistion speed
     position = motor.getPosition()
     xpos = position[0]
     ypos = position[1]
     zpos = position[2]
-    print(str(position) + ', ' + str(measuredValue))      # print progress
+    #print(str(position) + ', ' + str(measuredValue))      # print progress
     file.write(str(c) + ', ' + str(xcoord) + ', ' + str(ycoord) + ', ' + str(zcoord) + ', ' + str(xpos) + ', ' + str(ypos) + ', ' + str(zpos) + ', ' '{0}\n'.format(str(measuredValue)))
     
     return measuredValue
 
-xstep = 0.0005
-ystep = 0.0005
+#%% xy plane
+
+xstep = 0.001
+ystep = 0.001
 zstep = 0.02
 xsign = 1
 ysign = -1
-xc = 6.53
-yc = -1.86
+xc = 9.77
+yc = -3.7
 
-xcoord = 6.53
-ycoord = -1.86
-zcoord = -7.47
+xcoord = 9.77
+ycoord = -3.7
+zcoord = 5.53
 c = 0
 d = 0
 
 #motor.getposition()
-acq     =   120
-planes  =   10
+acq     =   70
+planes  =   1
 
-motor.move(xcoord, ycoord, zcoord)
+motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
 measure(xcoord, ycoord, zcoord, c)
 
 while d < planes:
@@ -101,11 +123,58 @@ while d < planes:
     zcoord = zcoord + d*zstep
     xcoord = xc
     ycoord = yc
+    c = 0
 v34401A.close()    # Close our connection to the instrument
 rm.close()
 
 
 data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
+
+#%% xy plane
+
+xstep = 0.001
+zstep = 0.001
+
+xsign = 1
+zsign = -1
+
+
+xcoord = 9.77
+ycoord = -3.7
+zcoord = 5.53
+c = 0
+d = 0
+
+#motor.getposition()
+acq     =   70
+planes  =   1
+
+motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+measure(xcoord, ycoord, zcoord, c)
+
+
+while c < acq:
+    c += 1
+    print(c)
+    for i in range(c):
+        xcoord = xcoord + xstep*xsign
+        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+        #motor.move(xcoord, ycoord, zcoord)
+        measure(xcoord, ycoord, zcoord, c)
+    for i in range(c):
+        zcoord = zcoord + zstep*zsign
+        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.0005)
+        #motor.move(xcoord, ycoord, zcoord)
+        measure(xcoord, ycoord, zcoord, c)
+    xsign = xsign * -1
+    zsign = zsign * -1    
+
+v34401A.close()    # Close our connection to the instrument
+rm.close()
+
+
+data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
+
     
 #%% plotting trajectories
 
