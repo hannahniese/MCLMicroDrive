@@ -129,6 +129,7 @@ while d < planes:
     xcoord = xc
     ycoord = yc
     c = 0
+    measure(xcoord, ycoord, zcoord, c)
 v34401A.close()    # Close our connection to the instrument
 rm.close()
 

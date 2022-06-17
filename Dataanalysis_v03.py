@@ -54,7 +54,7 @@ for i in range(0,Nf):
 ### Importing E-field data
 masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_06_16_10x"
 #masterpath  =  r"C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive"
-file        =   '220616133256_data'
+file        =   '220616150754_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -142,3 +142,13 @@ ax.set_xlabel('x-coordinate [mm]')
 ax.set_ylabel('y-coordinate [mm]')
 ax.set_zlabel('z-coordinate [mm]')
 
+#%% plotting data as heatmap xz
+
+plt.scatter(y, -z, c=I, cmap='viridis', marker="s", s=30, vmin=-9.5, vmax=-2.5)
+plt.axis('equal')
+plt.xlabel('x-coordinate [mm]')
+plt.ylabel('z-coordinate [mm]')
+plt.colorbar()
+
+os.chdir(outpath)
+plt.savefig('%s_2D_test.png' % file, dpi=600)
