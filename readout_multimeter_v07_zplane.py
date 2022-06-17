@@ -44,7 +44,7 @@ motor = MicroDrive()
 counter = 0
 
 # write vital parameters of the measurement into the file
-file.write('Voltage = 3.9, Current = 20.8, Pinhole = 15um \n')
+file.write('Voltage = 3.9, Current = 20.8, Pinhole = 10um, Objective = 20x, NA = 0.42 \n')
 
 
 
@@ -87,22 +87,22 @@ def measure(xcoord, ycoord, zcoord, c):
 
 #%% xy plane
 
-xstep = 0.003
-ystep = 0.003
+xstep = 0.01
+ystep = 0.01
 zstep = 0.1
 xsign = 1
 ysign = -1
-xc = 9.72
-yc = -3.9
+xc = 9.1
+yc = 1.25
 
-xcoord = 9.72
-ycoord = -3.9
-zcoord = 3.34
+xcoord = 9.1
+ycoord = 1.25
+zcoord = 0
 c = 0
 d = 0
 
 #motor.getposition()
-acq     =   100
+acq     =   20
 planes  =   1
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
@@ -190,16 +190,16 @@ plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
 
 #%% XZ XZ XZ XZ XZXZXZXZXZXZXZXZXZXZ 
 
-ystep = 0.05
-zstep = 0.05
+ystep = 0.01
+zstep = 0.01
 
 ysign = 1
 zsign = -1
 
 
-xcoord = 9.7
-ycoord = -3.89
-zcoord = 3.24
+xcoord = 9.1
+ycoord = 1.2
+zcoord = -0.4
 c = 0
 d = 0
 
