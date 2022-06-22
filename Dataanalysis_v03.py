@@ -52,9 +52,9 @@ for i in range(0,Nf):
 #%% manual stuff
 
 ### Importing E-field data
-masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_06_16_10x"
+masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_06_21_50x"
 #masterpath  =  r"C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive"
-file        =   '220616150754_data'
+file        =   '220621140338_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -71,6 +71,11 @@ x = data[:,4]
 y = data[:,5]
 z = data[:,6]
 I = data[:,7]*1000 # convert to mV
+
+# calculate range of Intensitiy for normalization
+delta_I     =   I.max()-I.min()
+
+I_norm = (I - I.min()) / delta_I
 
 #%%
 
@@ -113,7 +118,7 @@ plt.close()
 
 
 ax = plt.axes(projection='3d')
-ax.scatter(x,y,I, c=I, cmap='viridis', linewidth=0.3, vmin=-9.5, vmax=-2)
+ax.scatter(x,y,I_norm, c=I_norm, cmap='viridis', linewidth=0.3, vmin=0, vmax=1)
 ax.set_xlabel('x-coordinate [mm]')
 ax.set_ylabel('y-coordinate [mm]')
 ax.set_zlabel('Intensity [mV]')
@@ -121,6 +126,17 @@ plt.show()
 
 os.chdir(outpath)
 plt.savefig('%s_values_1.png' % file, dpi=600)
+
+#%% plotting data as heatmap xy plane
+
+plt.scatter(y, -x, c=I_norm, cmap='viridis', marker="s", s=15, vmin=0, vmax=1)
+plt.axis('equal')
+plt.xlabel('y-coordinate [mm]')
+plt.ylabel('x-coordinate [mm]')
+plt.colorbar(label='Intensity')
+
+os.chdir(outpath)
+plt.savefig('%s_2D_norm.png' % file, dpi=600)
 
 #%% plotting data as heatmap
 

@@ -44,7 +44,7 @@ motor = MicroDrive()
 counter = 0
 
 # write vital parameters of the measurement into the file
-file.write('Voltage = 3.9, Current = 20.8, Pinhole = 10um, Objective = 20x, NA = 0.42 \n')
+file.write('Voltage = 3.6, Current = 18.4, Pinhole = 10um, Objective = 50x, NA = 0.55 \n')
 
 
 
@@ -87,22 +87,22 @@ def measure(xcoord, ycoord, zcoord, c):
 
 #%% xy plane
 
-xstep = 0.01
-ystep = 0.01
+xstep = 0.0005
+ystep = 0.0005
 zstep = 0.1
 xsign = 1
 ysign = -1
-xc = 9.1
-yc = 1.25
+xc = 6.495
+yc = -1.525
 
-xcoord = 9.1
-ycoord = 1.25
-zcoord = 0
+xcoord = 6.495
+ycoord = -1.525
+zcoord = 1.55
 c = 0
 d = 0
 
 #motor.getposition()
-acq     =   20
+acq     =   120
 planes  =   1
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
@@ -190,21 +190,21 @@ plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
 
 #%% XZ XZ XZ XZ XZXZXZXZXZXZXZXZXZXZ 
 
-ystep = 0.01
-zstep = 0.01
+ystep = 0.0005
+zstep = 0.0005
 
 ysign = 1
 zsign = -1
 
 
-xcoord = 9.1
-ycoord = 1.2
-zcoord = -0.4
+xcoord = 6.4925
+ycoord = -1.525
+zcoord = 1.55
 c = 0
 d = 0
 
 #motor.getposition()
-acq     =   40
+acq     =   150
 planes  =   1
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
@@ -249,7 +249,7 @@ plt.ylabel('y-coordinate')
 plt.title('Acquired datapoints: %d' % dim) 
 
 #os.chdir(masterpath)
-plt.savefig('%s_points.png' % dataTimeString, dpi=600)
+plt.savefig('%s_side_points.png' % dataTimeString, dpi=600)
 
 
 
@@ -269,7 +269,7 @@ plt.ylabel('z-coordinate [mm]')
 plt.colorbar()
 
 #os.chdir(outpath)
-plt.savefig('%s_2D.png' % dataTimeString, dpi=600)
+plt.savefig('%s_side_2D.png' % dataTimeString, dpi=600)
 
 
 #%% plotting 3d image
@@ -283,4 +283,4 @@ ax.set_zlabel('Intensity [mV]')
 plt.show()
 
 #os.chdir(masterpath)
-plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
+plt.savefig('%s_side_3D.png' % dataTimeString, dpi=600)

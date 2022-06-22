@@ -1,0 +1,1 @@
+Voltage = 3.9, Current = 20.8, Pinhole = 10um, Objective = 20x, NA = 0.42 
