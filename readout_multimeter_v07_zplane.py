@@ -3,10 +3,16 @@
 Created on Wed Jun 15 18:56:07 2022
 
 @author: Hannah Niese
+
+This script controls the x-y-z stage and reads out the values from the photodiode
+from the multimeter. The data is then re-arranged and plotted to get a first
+overview of the quality. 
+
+Anything labelled with #VARIABLE(S) is a variable that the use can change, other things should not be changed (unless you want to improve the code)
 """
 
 
-
+# import the necessary modules
 import pyvisa as visa
 import time
 import csv
@@ -15,97 +21,99 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import numpy as np
 
-##### INITIALIZE READOUT OF THE MULTIMETER
 
 
 
 # Generate the name of the data file based on the start of the script
-dataTimeString      =   datetime.datetime.now().strftime("%y%m%d%H%M%S")
+dataTimeString      =   datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
 fileNameString      =   dataTimeString + "_data.txt"
 figureNameString    =   dataTimeString + "_figure.png"
 figureName3D        =   dataTimeString + "_3Dfigure.png"
 
-# initialize arrays
+# set initial value to 0
 measuredValue       =   0.00000
 
-# initialize multimeter
-rm      =   visa.ResourceManager()
-v34401A =   rm.open_resource('GPIB0::22::INSTR')
+##### INITIALIZE MULTIMETER #####
+rm                  =   visa.ResourceManager()
+v34401A             =   rm.open_resource('GPIB0::22::INSTR')
 
 # open file to write data
-file    =   open(fileNameString, 'w')
+file                =   open(fileNameString, 'w')
 
 # Test for connection by asking for identification 
-ReturnValue = v34401A.query('*IDN?')
+ReturnValue         =   v34401A.query('*IDN?')
 
-# initialize stage 
+##### INITIALIZE STAGE ##### 
 # run the stage class before running this
-motor = MicroDrive()
-counter = 0
-
-# write vital parameters of the measurement into the file
-file.write('Voltage = 3.6, Current = 18.4, Pinhole = 10um, Objective = 50x, NA = 0.55 \n')
+motor               =   MicroDrive()
+counter             =    0
 
 
-
-#%% iterate through points in a spiral starting from the highest intensity
-
-def getPosition(self):
-        """
-        This function takes approximately 10ms.
-        """
-        
-        e1 = ctypes.pointer(ctypes.c_double())
-        e2 = ctypes.pointer(ctypes.c_double())
-        e3 = ctypes.pointer(ctypes.c_double())
-        e4 = ctypes.pointer(ctypes.c_double())
-        errorNumber = self.mcl.MCL_MDReadEncoders(e1, e2, e3, e4, self.handle)
-        if errorNumber != 0:
-            print('Error reading the encoders: ' + self.errorDictionary[errorNumber])
-        #print('Encoders: ' + str(np.round(e1.contents.value,4)) + ', ' + str(np.round(e2.contents.value,5)) + ', ' + str(np.round(e3.contents.value,5)))
-        position_temp = [e1.contents.value, e2.contents.value, e3.contents.value]
-        del e1
-        del e2
-        del e3
-        del e4
-        return position_temp
-
+# measurement function
 def measure(xcoord, ycoord, zcoord, c):
-    # acquisition control
-    #temp_values = v34401A.query_ascii_values(':MEASure:VOLTage:DC? %s,%s' % ('MIN', 'MAX'))
-    temp_values = v34401A.query_ascii_values(':MEASure:VOLTage:DC? %s,%s' % ('MIN', 'MAX'))  #DC voltage measurements using the MIN V range with MAX mV resolution. Then make and read one measurement
-    measuredValue = temp_values[0]
+    # this function measures the photodiode voltage at the input coordinates, writes it to the file and returns the measured value
+    #temp_values    =   v34401A.query_ascii_values(':MEASure:VOLTage:DC? %s,%s' % ('MIN', 'MAX'))
+    temp_values     =   v34401A.query_ascii_values(':MEASure:VOLTage:DC? %s,%s' % ('MIN', 'MAX'))  #DC voltage measurements using the MIN V range with MAX mV resolution. Then make and read one measurement
+    measuredValue   =   temp_values[0]
     #print('Voltage:  {0}'.format(str(measuredValue)))     # Commenting out prints increases acquistion speed
-    position = motor.getPosition()
-    xpos = position[0]
-    ypos = position[1]
-    zpos = position[2]
+    position        =   motor.getPosition()
+    xpos            =   position[0]
+    ypos            =   position[1]
+    zpos            =   position[2]
     #print(str(position) + ', ' + str(measuredValue))      # print progress
     file.write(str(c) + ', ' + str(xcoord) + ', ' + str(ycoord) + ', ' + str(zcoord) + ', ' + str(xpos) + ', ' + str(ypos) + ', ' + str(zpos) + ', ' '{0}\n'.format(str(measuredValue)))
     
     return measuredValue
 
-#%% xy plane
+# quick measurement function
+def quickmeasure(xcoord, ycoord, zcoord):
+    # this function measures the photodiode voltage at the input coordinates and prints the voltage 
+    temp_values     =   v34401A.query_ascii_values(':MEASure:VOLTage:DC? %s,%s' % ('MIN', 'MAX'))  #DC voltage measurements using the MIN V range with MAX mV resolution. Then make and read one measurement
+    measuredValue   =   temp_values[0]
+    print('Voltage:  {0}'.format(str(measuredValue)))     # Commenting out prints increases acquistion speed
+    
+    return measuredValue
 
-xstep = 0.0005
-ystep = 0.0005
-zstep = 0.1
+#%% input initial coordinates and step size
+    
+# VARIABLES
+    
+# write vital parameters of the measurement into the first line of the file
+file.write('Voltage = 3.6, Current = 18.4, Pinhole = 10um, Objective = 50x, NA = 0.55 \n')    
+
+# define step sizes and error for the stage movements
+xstep   =    0.0005       # in mm
+ystep   =    xstep
+zstep   =    0.1          # distance between z planes in mm 
+error   =    0.001        # error in mm
+
+# define starting location
+xcoord  =    6.495
+ycoord  =    -1.525
+zcoord  =    1.55         # z planes will have positive addition 
+
+motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error) # use these two functions to update location and check if there is signal
+quickmeasure(xcoord, ycoord, zcoord)
+
+# save initial coordinates so we can return to them for measurements on the additional plane (do not change)
+xc      =    xcoord
+yc      =    ycoord
+zc      =    zcoord
+
+
+
+#%% Run several measurements in the x-y plane
+# initialize signs and counters for spiral motion
 xsign = 1
 ysign = -1
-xc = 6.495
-yc = -1.525
-
-xcoord = 6.495
-ycoord = -1.525
-zcoord = 1.55
 c = 0
 d = 0
 
-#motor.getposition()
-acq     =   120
-planes  =   1
+# define the number of acquisitions and the number of planes that should be sampled
+acq     =   120         # VARIABLE
+planes  =   1           # VARIABLE
 
-motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
+motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
 measure(xcoord, ycoord, zcoord, c)
 
 while d < planes:
@@ -115,12 +123,12 @@ while d < planes:
         print(c)
         for i in range(c):
             xcoord = xcoord + xstep*xsign
-            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
+            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
             #motor.move(xcoord, ycoord, zcoord)
             measure(xcoord, ycoord, zcoord, c)
         for i in range(c):
             ycoord = ycoord + ystep*ysign
-            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
+            motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
             #motor.move(xcoord, ycoord, zcoord)
             measure(xcoord, ycoord, zcoord, c)
         xsign = xsign * -1
@@ -136,8 +144,7 @@ rm.close()
 
 data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
 
-#%% plotting trajectories
-
+#%% X-Y measurements plotting
 
 dim=len(data)
 
@@ -174,8 +181,8 @@ plt.colorbar()
 plt.savefig('%s_2D.png' % dataTimeString, dpi=600)
 
 
-#%% plotting 3d image
-
+# plotting 3d image
+plt.close()
 
 ax = plt.axes(projection='3d')
 ax.scatter(x,y,I, c=I, cmap='viridis', linewidth=0.5)
@@ -188,40 +195,39 @@ plt.show()
 plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
 
 
-#%% XZ XZ XZ XZ XZXZXZXZXZXZXZXZXZXZ 
+#%% X-Z measurements 
 
-ystep = 0.0005
-zstep = 0.0005
+ystep   =   0.0005
+zstep   =   ystep
+acq     =   150         # number of sides of acquisitions
+
 
 ysign = 1
 zsign = -1
 
 
-xcoord = 6.4925
-ycoord = -1.525
-zcoord = 1.55
+xcoord = xc
+ycoord = yc
+zcoord = zc
 c = 0
 d = 0
 
-#motor.getposition()
-acq     =   150
-planes  =   1
-
-motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
+# move to the center coordinate
+motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
 measure(xcoord, ycoord, zcoord, c)
 
-
+# move in spiral and acquire data
 while c < acq:
     c += 1
     print(c)
     for i in range(c):
         ycoord = ycoord + ystep*ysign
-        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
+        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
         #motor.move(xcoord, ycoord, zcoord)
         measure(xcoord, ycoord, zcoord, c)
     for i in range(c):
         zcoord = zcoord + zstep*zsign
-        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = 0.001)
+        motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
         #motor.move(xcoord, ycoord, zcoord)
         measure(xcoord, ycoord, zcoord, c)
     ysign = ysign * -1
@@ -230,11 +236,11 @@ while c < acq:
 v34401A.close()    # Close our connection to the instrument
 rm.close()
 
-
+# load data into python
 data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
 
     
-#%% plotting trajectories
+#%% X-Z measurements plotting
 
 
 dim=len(data)
@@ -244,8 +250,8 @@ plt.plot(data[:,2], data[:,3], color='green')
 plt.scatter(data[:,5], data[:,6], s=7, color='blue')
 
 plt.axis('equal')
-plt.xlabel('x-coordinate')
-plt.ylabel('y-coordinate')
+plt.xlabel('y-coordinate')
+plt.ylabel('z-coordinate')
 plt.title('Acquired datapoints: %d' % dim) 
 
 #os.chdir(masterpath)
@@ -253,7 +259,7 @@ plt.savefig('%s_side_points.png' % dataTimeString, dpi=600)
 
 
 
-#%% plotting 2d heatmap at real coordinates
+# plotting 2d heatmap at real coordinates
 plt.close()
 
 x = data[:,4]
