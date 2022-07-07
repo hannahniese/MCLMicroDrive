@@ -16,13 +16,14 @@ Anything labelled with #VARIABLE(S) is a variable that the use can change, other
 import pyvisa as visa
 import time
 import csv
+import os
 import datetime
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import numpy as np
 
-
-
+# %matplotlib qt
+#os.chdir('C:\Users\Congreve Optics\Desktop\Hannah\MCLMicroDrive\22_07_06_20x')
 
 # Generate the name of the data file based on the start of the script
 dataTimeString      =   datetime.datetime.now().strftime("%y-%m-%d_%H-%M-%S")
@@ -48,6 +49,8 @@ ReturnValue         =   v34401A.query('*IDN?')
 motor               =   MicroDrive()
 counter             =    0
 
+# write vital parameters of the measurement into the first line of the file
+file.write('Voltage = 3.6, Current = 18.2, Pinhole = 10um, Objective = 20x, NA = 0.42 \n')
 
 # measurement function
 def measure(xcoord, ycoord, zcoord, c):
@@ -78,19 +81,16 @@ def quickmeasure(xcoord, ycoord, zcoord):
     
 # VARIABLES
     
-# write vital parameters of the measurement into the first line of the file
-file.write('Voltage = 3.6, Current = 18.4, Pinhole = 10um, Objective = 50x, NA = 0.55 \n')    
-
 # define step sizes and error for the stage movements
-xstep   =    0.0005       # in mm
+xstep   =    0.0015       # in mm
 ystep   =    xstep
 zstep   =    0.1          # distance between z planes in mm 
 error   =    0.001        # error in mm
 
 # define starting location
-xcoord  =    6.495
+xcoord  =    10.325
 ycoord  =    -1.525
-zcoord  =    1.55         # z planes will have positive addition 
+zcoord  =    -0.141         # z planes will have positive addition 
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error) # use these two functions to update location and check if there is signal
 quickmeasure(xcoord, ycoord, zcoord)
@@ -171,7 +171,7 @@ z = data[:,6]
 I = data[:,7]*1000 # convert to mV
 
 
-plt.scatter(x,y, c=I, cmap='viridis', s=7)
+plt.scatter(x,y, c=I, cmap='viridis', s=4)
 plt.axis('equal')
 plt.xlabel('x-coordinate [mm]')
 plt.ylabel('y-coordinate [mm]')
@@ -193,13 +193,13 @@ plt.show()
 
 #os.chdir(masterpath)
 plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
-
+plt.close()
 
 #%% X-Z measurements 
 
-ystep   =   0.0005
+ystep   =   0.0015
 zstep   =   ystep
-acq     =   150         # number of sides of acquisitions
+acq     =   120         # number of sides of acquisitions
 
 
 ysign = 1
@@ -240,7 +240,7 @@ rm.close()
 data    = np.loadtxt(fileNameString, delimiter=',', skiprows=1)
 
     
-#%% X-Z measurements plotting
+# X-Z measurements plotting
 
 
 dim=len(data)

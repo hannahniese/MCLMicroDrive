@@ -13,9 +13,9 @@ import os
 
 
 ### Importing E-field data
-masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_06_20_50x"
-#masterpath  =  r"C:\Users\Congreve Optics\Documents\GitHub\MCLMicroDrive"
-file        =   '220620170434_data'
+#masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_06_20_50x"
+masterpath  =  r"C:\Users\Congreve Optics\Desktop\Hannah\MCLMicroDrive\22_07_06_20x"
+file        =   '22-07-06_14-46-50_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -26,7 +26,7 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '220616142654_data'
+side_file   =   '22-07-06_14-46-50_data'
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
