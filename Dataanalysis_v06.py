@@ -9,13 +9,14 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from scipy import constants
 import os
+import scipy as sc
 
 
 
 ### Importing E-field data
-masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_07_06_20x"
+masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_07_07_20x"
 #masterpath  =  r"C:\Users\Congreve Optics\Desktop\Hannah\MCLMicroDrive\22_07_07_20x"
-file        =   '22-07-06_16-50-45_data'
+file        =   '22-07-07_10-14-38_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -26,7 +27,7 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '22-07-06_21-03-25_data'
+side_file   =   '22-07-07_10-27-23_data'
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
@@ -41,9 +42,9 @@ I_side = side_data[:,7]*1000
 # calculate range of Intensitiy for normalization
 delta_I     =   I_side.max()-I_side.min()
 
-x = data[:,1]
-y = data[:,2]
-z = data[:,3]
+x = data[:,4]
+y = data[:,5]
+z = data[:,6]
 I = data[:,7]*1000 # convert to mV
 
 
@@ -66,7 +67,9 @@ I_side_limit = I_side
 #    else:
 #        I_side_limit[i] = 0
 
+plotgriddata(x, y, I_norm, profile=0, binsize=0.0027)
 
+plotgriddata(y_side, z_side, I_side_norm, profile = 1, binsize=0.003)
 
 #%% plotting data as heatmap xy plane
 
@@ -141,9 +144,9 @@ os.chdir(outpath)
 plt.savefig('%s_values_1.png' % file, dpi=600)
 
 #%% Meshgrid trial
-import scipy as sc
 
-def griddata(x, y, z, binsize=0.0015, retbin=True, retloc=True):
+
+def griddata(x, y, z, binsize, retbin=True, retloc=True):
     """
     Place unevenly spaced 2D data on a grid by 2D binning (nearest
     neighbor interpolation).
@@ -239,9 +242,65 @@ def griddata(x, y, z, binsize=0.0015, retbin=True, retloc=True):
             return grid
 
 
-grid, bins, wherebin, xi, yi = griddata(x, y, I, binsize=0.0015, retbin=True, retloc=True)
+def plotgriddata(x, y, I_norm, profile, binsize):
+    '''    
+    Function plots the interpolated (bilinear) image of the measurement area, 
+    with the input binsize (should correspond to stepsize of measurement plus error)
+    
+    x:       first coordinate (x for x-y datasets, y for y-z datasets)
+    y:       second coordinate (y for x-y datasets, z for y-z datasets)
+    I_norm:  Intensity information, usually normalized to the largest value in y-z dataset
+    binsize: Binning for the grid
+    
+    '''
+    grid, bins, wherebin, xi, yi = griddata(x, y, I_norm, binsize, retbin=True, retloc=True)
+    
+    if profile == 0:
+        Axis1 = 'X-values'
+        Axis2 = 'Y-values'
+        save = file
+    else:
+        Axis1 = 'X-values'
+        Axis2 = 'Y-values'
+        save = side_file + '_side'
+        
+    
+    # minimum values for colorbar. filter our nans which are in the grid
+    zmin    = 0 #grid[np.where(np.isnan(grid) == False)].min()
+    zmax    = 1 #grid[np.where(np.isnan(grid) == False)].max()
+    
+    
+    
+    # colorbar stuff
+    palette = 'viridis'#plt.matplotlib.colors.LinearSegmentedColormap('viridis',plt.cm.datad['viridis'],2048)
+    #palette.set_under(alpha=0.0)
+    
+    fig, axs = plt.subplots(1,2, figsize=(12,4))
+    fig.suptitle(file)
+    
+    # plot the results.  first plot is x, y vs z, where z is a filled level plot.
+    extent = (x.min(), x.max(), y.min(), y.max()) # extent of the plot
+    axs[0].plot(1, 2, 1)
+    pic = axs[0].imshow(grid, extent=extent, cmap=palette, origin='lower', vmin=zmin, vmax=zmax, aspect='equal', interpolation='bicubic')
+    axs[0].set_xlabel(Axis1)
+    axs[0].set_ylabel(Axis2)
+    axs[0].set_title('Normalized Intensity')
+    plt.colorbar(pic, ax = axs[0])
+    
+    # now show the number of points in each bin.  since the independent data are
+    # Gaussian distributed, we expect a 2D Gaussian.
+    axs[1].plot(1, 2, 2)
+    bins = axs[1].imshow(bins, extent=extent, cmap=palette, origin='lower', vmin=0, vmax=bins.max(), aspect='equal', interpolation='none')
+    axs[1].set_xlabel(Axis1)
+    axs[1].set_ylabel(Axis2)
+    axs[1].set_title('No. of Pts Per Bin')
+    plt.colorbar(bins, ax = axs[1])
+    
+    os.chdir(outpath)
+    plt.savefig('%s_binning.png' % save, dpi=600)
 
-interpolatedgrid = sc.interpolate.interp2d(xi, yi, grid)
+    return
 
+#plt.imshow(grid)
 
-plt.imshow(interpolatedgrid)
+#plotgriddata(x, y, I_norm, binsize=0.0015, 0)
