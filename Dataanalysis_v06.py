@@ -10,6 +10,8 @@ from mpl_toolkits import mplot3d
 from scipy import constants
 import os
 import scipy as sc
+import matplotlib.cm as cm
+import matplotlib.tri as tri
 
 
 
@@ -69,7 +71,71 @@ I_side_limit = I_side
 
 plotgriddata(x, y, I_norm, profile=0, binsize=0.0027)
 
-plotgriddata(y_side, z_side, I_side_norm, profile = 1, binsize=0.003)
+plotgriddata(y_side, z_side, I_side_norm, profile = 1, binsize=0.0027)
+
+#%% try out interpolation onto grid
+
+
+
+def gridinterpolation(x,y,I_norm):
+    
+    ngridx = ngridy = 0.0001     # Grid resolution
+    z = I_norm
+    
+    fig, (ax1, ax2) = plt.subplots(ncols=2)
+    
+    # -----------------------
+    # Interpolation on a grid
+    # -----------------------
+    # A contour plot of irregularly spaced data coordinates
+    # via interpolation on a grid.
+    
+    # Create grid values first.
+    xi = np.arange(x.min(), x.max(), ngridx)
+    yi = np.arange(y.min(), y.max(), ngridy)
+    extent = (x.min(), x.max(), y.min(), y.max()) # extent of the plot
+    
+    # Linearly interpolate the data (x, y) on a grid defined by (xi, yi).
+    #triang = tri.Triangulation(x, y)
+    #interpolator = tri.LinearTriInterpolator(triang, z)
+    #Xi, Yi = np.meshgrid(xi, yi)
+    #zi = interpolator(Xi, Yi)
+    
+    # Note that scipy.interpolate provides means to interpolate data on a grid
+    # as well. The following would be an alternative to the four lines above:
+    from scipy.interpolate import griddata
+    zi = griddata((x, y), z, (xi[None, :], yi[:, None]), method='linear')
+    
+    ax2.imshow(zi, extent=extent, origin='upper')
+    ax1.contour(xi, yi, zi)
+    cntr1 = ax1.contourf(xi, yi, zi, levels=7, cmap="RdBu_r", aspect='equal')
+    
+    fig.colorbar(cntr1, ax=ax1)
+    ax1.plot(x, y, 'ko', ms=3)
+    ax1.set()
+    ax1.set_title('grid and contour (%d points, %d grid points)' %
+                  (ngridx * ngridy))
+    
+    # ----------
+    # Contour lines
+    # ----------
+    # Directly supply the unordered, irregularly spaced coordinates
+    # to tricontour.
+    
+    #ax2.tricontour(x, y, z)
+    #cntr2 = ax2.tricontourf(x, y, z, levels=7, cmap="RdBu_r")
+    #
+    #fig.colorbar(cntr2, ax=ax2)
+    #ax2.plot(x, y, 'ko', ms=3)
+    #ax2.set()
+    #ax2.set_title('tricontour')
+    
+    plt.subplots_adjust(hspace=0.5)
+    plt.show()
+    
+    return
+
+gridinterpolation(y_side, z_side, I_side_norm)
 
 #%% plotting data as heatmap xy plane
 
@@ -187,6 +253,7 @@ def griddata(x, y, z, binsize, retbin=True, retloc=True):
     Revisions
     ---------
     2010-07-11  ccampo  Initial version
+    2022-07-11  nieseh  Adaptation
     """
     # get extrema values.
     xmin, xmax = x.min(), x.max()
@@ -275,13 +342,13 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     palette = 'viridis'#plt.matplotlib.colors.LinearSegmentedColormap('viridis',plt.cm.datad['viridis'],2048)
     #palette.set_under(alpha=0.0)
     
-    fig, axs = plt.subplots(1,2, figsize=(12,4))
+    fig, axs = plt.subplots(1,3, figsize=(12,4))
     fig.suptitle(file)
     
     # plot the results.  first plot is x, y vs z, where z is a filled level plot.
     extent = (x.min(), x.max(), y.min(), y.max()) # extent of the plot
     axs[0].plot(1, 2, 1)
-    pic = axs[0].imshow(grid, extent=extent, cmap=palette, origin='lower', vmin=zmin, vmax=zmax, aspect='equal', interpolation='bicubic')
+    pic = axs[0].imshow(grid, extent=extent, cmap=palette, origin='lower', vmin=zmin, vmax=zmax, aspect='equal', interpolation='nearest')
     axs[0].set_xlabel(Axis1)
     axs[0].set_ylabel(Axis2)
     axs[0].set_title('Normalized Intensity')
@@ -295,6 +362,11 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     axs[1].set_ylabel(Axis2)
     axs[1].set_title('No. of Pts Per Bin')
     plt.colorbar(bins, ax = axs[1])
+    
+    axs[2].plot(1, 2, 3)
+    cont = axs[2].contour(xi, yi, grid)
+    axs[2].clabel(cont, inline=True, fontsize=10)
+    axs[2].set_title('Contour lines')
     
     os.chdir(outpath)
     plt.savefig('%s_binning.png' % save, dpi=600)
