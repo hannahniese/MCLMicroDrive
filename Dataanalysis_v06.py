@@ -12,13 +12,13 @@ import os
 import scipy as sc
 import matplotlib.cm as cm
 import matplotlib.tri as tri
-
+from scipy.interpolate import griddata
 
 
 ### Importing E-field data
 masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_07_07_20x"
 #masterpath  =  r"C:\Users\Congreve Optics\Desktop\Hannah\MCLMicroDrive\22_07_07_20x"
-file        =   '22-07-07_10-14-38_data'
+file        =   '22-07-07_10-03-19_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -82,7 +82,7 @@ def gridinterpolation(x,y,I_norm):
     ngridx = ngridy = 0.0001     # Grid resolution
     z = I_norm
     
-    fig, (ax1, ax2) = plt.subplots(ncols=2)
+    fig, (ax1) = plt.subplots(ncols=1, figsize=(5,4))
     
     # -----------------------
     # Interpolation on a grid
@@ -103,17 +103,21 @@ def gridinterpolation(x,y,I_norm):
     
     # Note that scipy.interpolate provides means to interpolate data on a grid
     # as well. The following would be an alternative to the four lines above:
-    from scipy.interpolate import griddata
+    
     zi = griddata((x, y), z, (xi[None, :], yi[:, None]), method='linear')
     
-    ax2.imshow(zi, extent=extent, origin='upper')
-    ax1.contour(xi, yi, zi)
-    cntr1 = ax1.contourf(xi, yi, zi, levels=7, cmap="RdBu_r", aspect='equal')
+    #ax1.imshow(zi, extent=extent, vmin=0, vmax=1, origin='lower')
+    ax1.contour(xi, yi, zi, aspect='equal')
+    cntr1 = ax1.contourf(xi, yi, zi, levels=10, cmap="RdBu_r", aspect='equal')
     
-    fig.colorbar(cntr1, ax=ax1)
-    ax1.plot(x, y, 'ko', ms=3)
-    ax1.set()
-    ax1.set_title('grid and contour (%d points, %d grid points)' %
+    ax2.contour(xi, yi, zi, aspect='equal')
+    cntr1 = ax2.contourf(xi, yi, zi, levels=7, cmap="RdBu_r", aspect='equal')
+    ax2.clabel(cntr1, inline=True, fontsize=10)
+    
+    fig.colorbar(cntr1, ax=ax2)
+    ax2.plot(x, y, 'ko', ms=3)
+    ax2.set()
+    ax2.set_title('grid and contour (%d points, %d grid points)' %
                   (ngridx * ngridy))
     
     # ----------
@@ -133,9 +137,10 @@ def gridinterpolation(x,y,I_norm):
     plt.subplots_adjust(hspace=0.5)
     plt.show()
     
-    return
+    return zi, xi, yi
 
 gridinterpolation(y_side, z_side, I_side_norm)
+gridinterpolation(x, y, I_norm)
 
 #%% plotting data as heatmap xy plane
 
@@ -212,7 +217,7 @@ plt.savefig('%s_values_1.png' % file, dpi=600)
 #%% Meshgrid trial
 
 
-def griddata(x, y, z, binsize, retbin=True, retloc=True):
+def gridondata(x, y, z, binsize, retbin=True, retloc=True):
     """
     Place unevenly spaced 2D data on a grid by 2D binning (nearest
     neighbor interpolation).
@@ -320,7 +325,8 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     binsize: Binning for the grid
     
     '''
-    grid, bins, wherebin, xi, yi = griddata(x, y, I_norm, binsize, retbin=True, retloc=True)
+    #grid, bins, wherebin, xi, yi = griddata(x, y, I_norm, binsize, retbin=True, retloc=True)
+    
     
     if profile == 0:
         Axis1 = 'X-values'
@@ -343,7 +349,7 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     #palette.set_under(alpha=0.0)
     
     fig, axs = plt.subplots(1,3, figsize=(12,4))
-    fig.suptitle(file)
+    fig.suptitle(save)
     
     # plot the results.  first plot is x, y vs z, where z is a filled level plot.
     extent = (x.min(), x.max(), y.min(), y.max()) # extent of the plot
@@ -364,7 +370,7 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     plt.colorbar(bins, ax = axs[1])
     
     axs[2].plot(1, 2, 3)
-    cont = axs[2].contour(xi, yi, grid)
+    cont = axs[2].contour(xi, yi, grid, extent=extent, oritin='lower')
     axs[2].clabel(cont, inline=True, fontsize=10)
     axs[2].set_title('Contour lines')
     
