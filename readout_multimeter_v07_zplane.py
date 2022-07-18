@@ -50,7 +50,7 @@ motor               =   MicroDrive()
 counter             =    0
 
 # write vital parameters of the measurement into the first line of the file
-file.write('Voltage = 3.6, Current = 18.2, Pinhole = 10um, Objective = 20x, NA = 0.42 \n')
+file.write('Voltage = 3.8, Current = 20.3, Pinhole = 10um, Objective = 20x, NA = 0.42 \n')
 
 # measurement function
 def measure(xcoord, ycoord, zcoord, c):
@@ -82,15 +82,15 @@ def quickmeasure(xcoord, ycoord, zcoord):
 # VARIABLES
     
 # define step sizes and error for the stage movements
-xstep   =    0.0015       # in mm
+xstep   =    0.002       # in mm
 ystep   =    xstep
 zstep   =    0.1          # distance between z planes in mm 
 error   =    0.001        # error in mm
 
 # define starting location
-xcoord  =    10.325
-ycoord  =    -1.525
-zcoord  =    -0.141         # z planes will have positive addition 
+xcoord  =    10.535   #10.535
+ycoord  =    -1.81
+zcoord  =    -0.43 #-0.415        # -0.415 z planes will have positive addition 
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error) # use these two functions to update location and check if there is signal
 quickmeasure(xcoord, ycoord, zcoord)
@@ -110,7 +110,7 @@ c = 0
 d = 0
 
 # define the number of acquisitions and the number of planes that should be sampled
-acq     =   120         # VARIABLE
+acq     =   110         # VARIABLE
 planes  =   1           # VARIABLE
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
@@ -193,13 +193,13 @@ plt.show()
 
 #os.chdir(masterpath)
 plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
-plt.close()
+#plt.close()
 
 #%% X-Z measurements 
 
-ystep   =   0.0015
+ystep   =   0.002
 zstep   =   ystep
-acq     =   120         # number of sides of acquisitions
+acq     =   110         # number of sides of acquisitions
 
 
 ysign = 1
