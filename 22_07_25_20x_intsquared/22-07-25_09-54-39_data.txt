@@ -1,1 +1,0 @@
-Voltage = 3.8, Current = 19.5, Pinhole = 10um, Objective = 20x, NA = 0.42, Check_01_A 
