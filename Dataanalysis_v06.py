@@ -16,9 +16,9 @@ from scipy.interpolate import griddata
 
 
 ### Importing E-field data
-masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_07_07_20x"
+masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\22_07_18_20x_chess"
 #masterpath  =  r"C:\Users\Congreve Optics\Desktop\Hannah\MCLMicroDrive\22_07_07_20x"
-file        =   '22-07-07_10-03-19_data'
+file        =   '22-07-18_15-01-49_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -29,7 +29,7 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '22-07-07_10-27-23_data'
+side_file   =   '22-07-18_15-38-47_data'
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
@@ -51,15 +51,17 @@ I = data[:,7]*1000 # convert to mV
 
 
 # normalized datasets
-I_norm = (I - I.min())/delta_I # convert to mV
+I_norm = (I - I.min())/delta_I**2 # convert to mV
 
 
 # side dataset
 x_side = side_data[:,4]
 y_side = side_data[:,5]
 z_side = side_data[:,6]
-I_side_norm = (I_side - I.min())/delta_I # convert to mV
+I_side_norm = (I_side - I.min())/delta_I**2 # convert to mV
 I_side_limit = I_side
+
+I_squared_max = I_side_norm.max()
 
 #for i in range(len(I_side_limit)):
 #    if I_side[i] < 0.5:
@@ -68,13 +70,31 @@ I_side_limit = I_side
 #        I_side_limit[i] = 1
 #    else:
 #        I_side_limit[i] = 0
+#%%
+binsize=0.0027
+profile=0
+plotgriddata(x, y, I_norm, profile, binsize, I_squared_max) 
 
-plotgriddata(x, y, I_norm, profile=0, binsize=0.0027)
-
-plotgriddata(y_side, z_side, I_side_norm, profile = 1, binsize=0.0027)
+profile=1
+plotgriddata(y_side, z_side, I_side_norm, profile, binsize, I_squared_max)
 
 #%% try out interpolation onto grid
 
+def pointsongrid(x, y, I_norm):
+    # input: takes coordinates and intensities at measured locations
+    # output: coordinates and intensities on grid (x, y, Intensity)
+    ngridx = ngridy = 0.0001     # Grid resolution
+    z = I_norm
+    
+    # Create grid values
+    xi = np.arange(x.min(), x.max(), ngridx)
+    yi = np.arange(y.min(), y.max(), ngridy)
+    extent = (x.min(), x.max(), y.min(), y.max()) # extent of the plot
+    
+    # Linearly interpolate the data (x, y) on a grid defined by (xi, yi).  
+    zi = griddata((x, y), z, (xi[None, :], yi[:, None]), method='linear')
+    
+    return xi, yi, zi
 
 
 def gridinterpolation(x,y,I_norm):
@@ -106,7 +126,7 @@ def gridinterpolation(x,y,I_norm):
     
     zi = griddata((x, y), z, (xi[None, :], yi[:, None]), method='linear')
     
-    #ax1.imshow(zi, extent=extent, vmin=0, vmax=1, origin='lower')
+    ax1.imshow(zi, extent=extent, vmin=0, vmax=1, origin='lower')
     ax1.contour(xi, yi, zi, aspect='equal')
     cntr1 = ax1.contourf(xi, yi, zi, levels=10, cmap="RdBu_r", aspect='equal')
     
@@ -314,7 +334,7 @@ def gridondata(x, y, z, binsize, retbin=True, retloc=True):
             return grid
 
 
-def plotgriddata(x, y, I_norm, profile, binsize):
+def plotgriddata(x, y, I_norm, profile, binsize, I_side_max):
     '''    
     Function plots the interpolated (bilinear) image of the measurement area, 
     with the input binsize (should correspond to stepsize of measurement plus error)
@@ -325,7 +345,7 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     binsize: Binning for the grid
     
     '''
-    #grid, bins, wherebin, xi, yi = griddata(x, y, I_norm, binsize, retbin=True, retloc=True)
+    grid, bins, wherebin, xi, yi = gridondata(x, y, I_norm, binsize, retbin=True, retloc=True)
     
     
     if profile == 0:
@@ -340,7 +360,7 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     
     # minimum values for colorbar. filter our nans which are in the grid
     zmin    = 0 #grid[np.where(np.isnan(grid) == False)].min()
-    zmax    = 1 #grid[np.where(np.isnan(grid) == False)].max()
+    zmax    = I_squared_max #grid[np.where(np.isnan(grid) == False)].max()
     
     
     
@@ -348,7 +368,7 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     palette = 'viridis'#plt.matplotlib.colors.LinearSegmentedColormap('viridis',plt.cm.datad['viridis'],2048)
     #palette.set_under(alpha=0.0)
     
-    fig, axs = plt.subplots(1,3, figsize=(12,4))
+    fig, axs = plt.subplots(1,2, figsize=(12,4))
     fig.suptitle(save)
     
     # plot the results.  first plot is x, y vs z, where z is a filled level plot.
@@ -369,10 +389,10 @@ def plotgriddata(x, y, I_norm, profile, binsize):
     axs[1].set_title('No. of Pts Per Bin')
     plt.colorbar(bins, ax = axs[1])
     
-    axs[2].plot(1, 2, 3)
-    cont = axs[2].contour(xi, yi, grid, extent=extent, oritin='lower')
-    axs[2].clabel(cont, inline=True, fontsize=10)
-    axs[2].set_title('Contour lines')
+#    axs[2].plot(1, 2, 3)
+#    cont = axs[2].contour(xi, yi, grid, extent=extent, oritin='lower')
+#    axs[2].clabel(cont, inline=True, fontsize=10)
+#    axs[2].set_title('Contour lines')
     
     os.chdir(outpath)
     plt.savefig('%s_binning.png' % save, dpi=600)
@@ -382,3 +402,126 @@ def plotgriddata(x, y, I_norm, profile, binsize):
 #plt.imshow(grid)
 
 #plotgriddata(x, y, I_norm, binsize=0.0015, 0)
+
+#%% fit
+    
+import numpy as np
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
+x_grid, y_grid, Int = pointsongrid(x, y, I_norm)
+# The two-dimensional domain of the fit.
+#xmin, xmax, nx = x_grid.min(), x_grid.max(), 100
+#ymin, ymax, ny = y_grid.min(), y_grid.max(), 100
+#x, y = np.linspace(xmin, xmax, nx), np.linspace(ymin, ymax, ny)
+X, Y = np.meshgrid(x_grid, y_grid)
+Z = np.nan_to_num(Int)
+
+# Plot the 3D figure of the fitted function and the residuals.
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.plot_surface(X, Y, Z, cmap='plasma')
+ax.set_zlim(0,np.max(Z)+0.2)
+plt.show()
+
+def get_basis(x, y, max_order=4):
+    """Return the fit basis polynomials: 1, x, x^2, ..., xy, x^2y, ... etc."""
+    basis = []
+    for i in range(max_order+1):
+        for j in range(max_order - i +1):
+            basis.append(x**j * y**i)
+    return basis
+
+# We need to ravel the meshgrids of X, Y points to a pair of 1-D arrays.
+x, y = X.ravel(), Y.ravel()
+# Maximum order of polynomial term in the basis.
+max_order = 8
+basis = get_basis(x, y, max_order)
+# Linear, least-squares fit.
+A = np.vstack(basis).T
+b = Z.ravel()
+c, r, rank, s = np.linalg.lstsq(A, b, rcond=None)
+
+print('Fitted parameters:')
+print(c)
+
+# Calculate the fitted surface from the coefficients, c.
+fit = np.sum(c[:, None, None] * np.array(get_basis(X, Y, max_order))
+                .reshape(len(basis), *X.shape), axis=0)
+
+rms = np.sqrt(np.mean((Z - fit)**2))
+print('RMS residual =', rms)
+
+# Plot the 3D figure of the fitted function and the residuals.
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.plot_surface(X, Y, fit, cmap='viridis')
+cset = ax.contourf(X, Y, Z-fit, zdir='z', offset=-4, cmap='viridis')
+ax.set_zlim(-4,np.max(fit))
+plt.show()
+
+# Plot the test data as a 2D image and the fit as overlaid contours.
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.imshow(Z, origin='lower', cmap='viridis',
+          extent=(x.min(), x.max(), y.min(), y.max()))
+ax.contour(X, Y, fit, colors='w')
+plt.show()
+
+
+#%%
+
+# Our function to fit is going to be a sum of two-dimensional Gaussians
+def gaussian(x, y, x0, y0, xalpha, yalpha, A):
+    return A * np.exp( -((x-x0)/xalpha)**2 -((y-y0)/yalpha)**2)
+
+# This is the callable that is passed to curve_fit. M is a (2,N) array
+# where N is the total number of data points in Z, which will be ravelled
+# to one dimension.
+def _gaussian(M, *args):
+    x, y = M
+    arr = np.zeros(x.shape)
+    for i in range(len(args)//5):
+       arr += gaussian(x, y, *args[i*5:i*5+5])
+    return arr
+
+# Initial guesses to the fit parameters.
+guess_prms = [(0, 0, 1, 1, 2),
+              (-1.5, 5, 5, 1, 3),
+              (-1, -1, 1.5, 1.5, 3),
+              (-1, -1, 1.5, 1.5, 6.5)
+             ]
+# Flatten the initial guess parameter list.
+p0 = [p for prms in guess_prms for p in prms]
+
+# We need to ravel the meshgrids of X, Y points to a pair of 1-D arrays.
+xdata = np.vstack((X.ravel(), Y.ravel()))
+# Do the fit, using our custom _gaussian function which understands our
+# flattened (ravelled) ordering of the data points.
+popt, pcov = curve_fit(_gaussian, xdata, Z.ravel(), p0)
+fit = np.zeros(Z.shape)
+for i in range(len(popt)//5):
+    fit += gaussian(X, Y, *popt[i*5:i*5+5])
+print('Fitted parameters:')
+print(popt)
+
+rms = np.sqrt(np.mean((Z - fit)**2))
+print('RMS residual =', rms)
+
+# Plot the 3D figure of the fitted function and the residuals.
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.plot_surface(X, Y, fit, cmap='plasma')
+cset = ax.contourf(X, Y, Z-fit, zdir='z', offset=-4, cmap='plasma')
+ax.set_zlim(np.min(fit),np.max(fit))
+plt.show()
+
+# Plot the test data as a 2D image and the fit as overlaid contours.
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.imshow(Z, origin='bottom', cmap='plasma',
+          extent=(x.min(), x.max(), y.min(), y.max()))
+ax.contour(X, Y, fit, colors='w')
+plt.show()
