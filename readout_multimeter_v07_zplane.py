@@ -290,3 +290,30 @@ plt.show()
 
 #os.chdir(masterpath)
 plt.savefig('%s_side_3D.png' % dataTimeString, dpi=600)
+
+
+#%% key controller
+
+position        =   motor.getPosition()
+xpos            =   position[0]
+ypos            =   position[1]
+zpos            =   position[2]
+step            =   1
+
+import keyboard
+
+while True:
+    if keyboard.read_key() == "up":
+        motor.move(position[0], position[1] - step, position[2])
+        position        =   motor.getPosition()
+    if keyboard.read_key() == "down":
+        motor.move(position[0], position[1] + step, position[2])
+        position        =   motor.getPosition()
+    if keyboard.read_key() == "left":
+        motor.move(position[0] - step, position[1], position[2])
+        position        =   motor.getPosition()
+    if keyboard.read_key() == "right":
+        motor.move(position[0] + step, position[1], position[2])
+        position        =   motor.getPosition()
+
+
