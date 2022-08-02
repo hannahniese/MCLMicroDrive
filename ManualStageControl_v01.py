@@ -17,8 +17,8 @@ motor.centerHomePosition()
 
 position        =   motor.getPosition()
 
-step            =   0.2
-zstep           =   0.05
+step            =   1
+zstep           =   1
 
 import keyboard
 
