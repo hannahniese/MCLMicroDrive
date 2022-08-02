@@ -295,25 +295,77 @@ plt.savefig('%s_side_3D.png' % dataTimeString, dpi=600)
 #%% key controller
 
 position        =   motor.getPosition()
-xpos            =   position[0]
-ypos            =   position[1]
-zpos            =   position[2]
-step            =   1
+
+step            =   0.2
+zstep           =   0.05
 
 import keyboard
 
+
+def mywait():
+    keyboard.read_key()
+
 while True:
-    if keyboard.read_key() == "up":
+    if keyboard.read_key() == "right":
         motor.move(position[0], position[1] - step, position[2])
         position        =   motor.getPosition()
-    if keyboard.read_key() == "down":
+    if keyboard.read_key() == "left":
         motor.move(position[0], position[1] + step, position[2])
         position        =   motor.getPosition()
-    if keyboard.read_key() == "left":
+    if keyboard.read_key() == "up":
         motor.move(position[0] - step, position[1], position[2])
         position        =   motor.getPosition()
-    if keyboard.read_key() == "right":
+    if keyboard.read_key() == "down":
         motor.move(position[0] + step, position[1], position[2])
         position        =   motor.getPosition()
+    if keyboard.read_key() == "m":                                  # m 
+        motor.move(position[0], position[1], position[2] - zstep)
+        position        =   motor.getPosition()
+    if keyboard.read_key() == "n":
+        motor.move(position[0], position[1], position[2] + zstep)
+        position        =   motor.getPosition()
+
+
+#%%
+
+position        =   motor.getPosition()
+
+step            =   0.1
+
+import sys, pygame
+pygame.init()
+
+run = True
+
+while run:
+    for event in pygame.event.get():
+        if event.type == pygame.K_RIGHT:
+            motor.move(position[0], position[1] - step, position[2])
+            position        =   motor.getPosition()
+        if event.type == pygame.K_LEFT:
+            motor.move(position[0], position[1] + step, position[2])
+            position        =   motor.getPosition()
+        if event.type == pygame.K_UP:
+            motor.move(position[0] - step, position[1], position[2])
+            position        =   motor.getPosition() 
+        if event.type == pygame.K_DOWN:
+            motor.move(position[0] + step, position[1], positi on[2])
+            position        =   motor.getPosition()
+        if event.type == pygame.K_SPACE:
+            run = False
+pygame.quit()
+   
+# while True:
+
+        
+    
+# while True:
+
+        
+    
+# while True:
+
+       
+#keyboard.on_press_key("down", motor.move(position[0] + step, position[1], position[2]))
 
 
