@@ -2,6 +2,8 @@
 """
 Created on Wed Jun  1 14:15:40 2022
 
+This script is used to add up the two squared images of two different checkerboard images. 
+
 @author: Hannah Niese
 """
 import numpy as np
@@ -14,28 +16,29 @@ import matplotlib.cm as cm
 import matplotlib.tri as tri
 from scipy.interpolate import griddata
 from scipy.optimize import curve_fit
+import math
 
 
 ### Importing E-field data
-masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_07_20x"
+masterpath   =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
 #masterpath  =  r"C:\Users\Congreve Optics\Desktop\Hannah\MCLMicroDrive\22_07_07_20x"
-file        =   '22-07-07_10-58-49_data'
-ftype       =   '.txt'
-datafile    =   masterpath + '\\' + file + ftype
-outpath     =   masterpath + '\\analysis'
+file1        =   '22-07-25_11-25-05_data'
+ftype        =   '.txt'
+datafile1    =   masterpath + '\\' + file1 + ftype
+outpath      =   masterpath + '\\analysis'
 if os.path.isdir(outpath) == False:
     os.mkdir(outpath)
     
-data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
+data1        = np.loadtxt(datafile1, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '22-07-07_10-27-23_data'
-ftype       =   '.txt'
-side_datafile    =   masterpath + '\\' + side_file + ftype
+file2             =   '22-07-25_12-18-45_data'
+ftype             =   '.txt'
+datafile2         =    masterpath + '\\' + file2 + ftype
 
 
-side_data    = np.loadtxt(side_datafile, delimiter=',',  skiprows=1)
+data2        = np.loadtxt(datafile2, delimiter=',',  skiprows=1)
 
 #%% normal dataset
 
@@ -55,42 +58,42 @@ I = data[:,7]*1000 # convert to mV
 I_norm = (I - I.min())/delta_I # convert to mV
 
 
-# side dataset
-x_side = side_data[:,4]
-y_side = side_data[:,5]
-z_side = side_data[:,6]
-I_side_norm = (I_side - I.min())/delta_I # convert to mV
-I_side_limit = I_side
+# second dataset
+x_s = side_data[:,4]
+y_s = side_data[:,5]
+z_s = side_data[:,6]
+I_s_norm = (I_side - I.min())/delta_I # convert to mV
+I__limit = I_side
 
 I_squared_max = I_side_norm.max()
 
 #%% positive numbers dataset
 
-# side dataset for normalization
-I_side = side_data[:,7]*1000
+# first dataset
+x1      = data1[:,4]
+y1      = data1[:,5]
+z1      = data1[:,6]
+I1      = data1[:,7]*1000 # convert to mV
+
+# second dataset
+x2      = data2[:,4]
+y2      = data2[:,5]
+z2      = data2[:,6]
+I2      = data2[:,7]*1000 # convert to mV
 
 # calculate range of Intensitiy for normalization
-delta_I     =   I_side.max()-I_side.min()
+delta_I1     =   I1.max()-I1.min()
+delta_I2     =   I2.max()-I2.min()
+delta        =   max(delta_I1, delta_I2)
+floor        =   min(I1.min(), I2.min())
+# positive numbers datasets
+I1_pos = (I1 - floor + 1)*10
+I2_pos = (I2 - floor + 1)*10
 
-x = data[:,4]
-y = data[:,5]
-z = data[:,6]
-I = data[:,7]*1000 # convert to mV
-
-
-# normalized datasets
-I_pos = I - I_side.min() # convert to mV
-
-
-# side dataset
-x_side = side_data[:,4]
-y_side = side_data[:,5]
-z_side = side_data[:,6]
-I_side_pos = I_side - I_side.min() # convert to mV
-
-
-I_squared       = np.square(I_pos)
-I_side_squared  = np.square(I_side_pos)
+# square both datasets
+I1_squared      = np.square(I1_pos)
+I2_squared      = np.square(I2_pos)
+I_max           = (delta*10)**2
 #%%
 binsize=0.0027
 profile=0
@@ -99,15 +102,18 @@ plotgriddata(x, y, I**2, profile, binsize, I_squared_max)
 profile=1
 plotgriddata(y_side, z_side, I_side**2, profile, binsize, I_squared_max)
 
-#%%
+#%% plots measurement data on array
 
-yi, zi, Ii, gridres = pointsongrid(x, y, I_norm)
-#yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
+yi, zi, I1, gridres = pointsongrid(y1, z1, I1_squared)
+yi, zi, I2, gridres = pointsongrid(y2, z2, I2_squared)
+I2 = np.delete(I2,0,0)
+I2 = np.delete(I2,0,1)
+Added = np.add(I1, I2)
 
-plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1)
+plt.imshow(Added, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=1, vmax=I_max*1.3)
 plt.axis('equal')
-plt.xlabel('x-coordinate [mm]')
-plt.ylabel('y-coordinate [mm]')
+plt.xlabel('y-coordinate [mm]')
+plt.ylabel('z-coordinate [mm]')
 plt.colorbar(label='Intensity')
 
 os.chdir(outpath)
@@ -116,11 +122,10 @@ os.chdir(outpath)
 #%%
 
 # yz plots
-ymin = 100 
-ymax = 1500
+ymin = 1 
+ymax = 2004
 
-z = 820
-
+z = 1100
 
 
 def pointsongrid(x, y, I):
@@ -152,7 +157,7 @@ def coordfunc(a, x0, sigma, value):
 
 # select range of data to be fitted
 yg = yi[ymin:ymax]
-Ig = Ii[z][ymin:ymax]
+Ig = Added[z][ymin:ymax]
 
 
 # Plot out the current state of the data and model
@@ -179,6 +184,40 @@ ax.plot(coord, oesq, 'o', color='green')
 ax.legend()
 #fig.savefig('model_fit.png')
 
+#%% plot several crosscuts through yz image
+
+z = 0
+for z in range(0 , 2000, z + 200):
+    # select range of data to be fitted
+    yg = yi[ymin:ymax]
+    Ig = Added[z][ymin:ymax]
+    plt.plot(yg, Ig, label=z)
+
+plt.legend()
+    
+#%% or
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+x = yi
+y = np.arange(100)
+X,Y = np.meshgrid(x,y)
+Z = np.zeros((len(y),len(x)))
+
+
+z = 0
+for i in range(len(y)):
+    Z[i] = Added[z]
+    z += 20
+
+ax.plot_surface(X, Y, Z, rstride=1, cmap=cm.coolwarm, cstride=1000, shade=True, lw=.5)
+
+#ax.set_zlim(0, 5)
+#ax.set_xlim(-51, 51)
+#ax.set_zlabel("Intensity")
+#ax.view_init(20,-120)
+plt.show()
 
 #%% gaussian fits for all z values
 
