@@ -206,8 +206,8 @@ plt.plot(w, 'o')
 wfit = w[270 : 1250]
 zfit = zi[270 : 1250]
 #%% Fit 
-def waist(w0, z):
-    return w0 * np.sqrt(1 + ((0.000625*z)/(np.pi*w0**2))**2)
+def waist(z, a, b, c, d):
+    return b* np.sqrt(1 + (z-c)**2/a**2) + d
 
 # Plot out the current state of the data and model
 fig = plt.figure()
@@ -215,9 +215,10 @@ ax = fig.add_subplot(111)
 ax.plot(zfit, wfit, c='k', label='Waist')
 ax.scatter(zfit, wfit)
 
+
 # Executing curve_fit
-popt, pcov  =   curve_fit(waist, zfit, wfit, bounds=(-1.97, -0.102))                                 # fit
-Im = waist(popt[0], zfit)
+popt, pcov  =   curve_fit(waist, zfit, wfit)                                 # fit,  bounds=(-1.97, -0.102)
+Im = waist(zfit, popt[0], popt[1], popt[2], popt[3])
 ax.plot(zfit, Im, c='r', label='Best fit')
 
 #%%
