@@ -1,0 +1,1 @@
+TEST TEST Voltage = 3.6, Current = 18.2, Pinhole = 10um, Objective = 20x, NA = 0.42 

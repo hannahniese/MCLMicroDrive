@@ -88,9 +88,9 @@ zstep   =    0.1          # distance between z planes in mm
 error   =    0.001        # error in mm
 
 # define starting location
-xcoord  =    10.535   #10.535
-ycoord  =    -1.81
-zcoord  =    -0.43 #-0.415        # -0.415 z planes will have positive addition 
+xcoord  =    10.775   #10.535
+ycoord  =    -2.53
+zcoord  =    -7.7 #-0.415        # -0.415 z planes will have positive addition 
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error) # use these two functions to update location and check if there is signal
 quickmeasure(xcoord, ycoord, zcoord)
@@ -110,7 +110,7 @@ c = 0
 d = 0
 
 # define the number of acquisitions and the number of planes that should be sampled
-acq     =   110         # VARIABLE
+acq     =   80          # VARIABLE
 planes  =   1           # VARIABLE
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
@@ -197,9 +197,9 @@ plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
 
 #%% X-Z measurements 
 
-ystep   =   0.002
+ystep   =   0.001
 zstep   =   ystep
-acq     =   110         # number of sides of acquisitions
+acq     =   120         # number of sides of acquisitions
 
 
 ysign = 1
