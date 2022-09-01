@@ -101,7 +101,7 @@ plotgriddata(y_side, z_side, I_side**2, profile, binsize, I_squared_max)
 
 #%%
 
-yi, zi, Ii, gridres = pointsongrid(x, y, I_norm)
+yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
 #yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
 
 plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1)
@@ -119,7 +119,7 @@ os.chdir(outpath)
 ymin = 100 
 ymax = 1500
 
-z = 820
+z = 1200
 
 
 
@@ -145,10 +145,16 @@ yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_squared)
 
 #%% create a function to model and create data
 def func(x, a, x0, sigma):
-	return a*np.exp(-(x-x0)**2/(2*sigma**2))
+	 return a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 def coordfunc(a, x0, sigma, value):
-    return x0 - 2*sigma * np.sqrt( - np.log(value/a))
+    return x0 - 2*sigma * np.sqrt(np.log(a/value))
+
+def FWHMtoSigma(FWHM):
+    return FWHM / (2 * np.sqrt(2 * np.ln(2)))
+
+def SigmatoFWHM(sigma):
+    return sigma * 2 * np.sqrt(2 * np.ln(2))
 
 # select range of data to be fitted
 yg = yi[ymin:ymax]
@@ -164,10 +170,12 @@ ax.scatter(yg, Ig)
 # Executing curve_fit
 popt, pcov  =   curve_fit(func, yg, Ig)
 FWHM        =   np.abs(2*np.sqrt(2*np.log(2))*popt[2])
+coordFWHM   =   popt[1] + FWHM/2
+vFWHM       =   func(coordFWHM, popt[0], popt[1], popt[2])   
 peak        =   func(popt[1], popt[0], popt[1], popt[2])
 oesq        =   1/np.e**2 * np.abs(peak) 
 coord       =   coordfunc(popt[0], popt[1], popt[2], oesq) 
-w           =   popt[1] - coord
+w           =   coord
 
 #popt returns the best fit values for parameters of the given model (func)
 print (popt, FWHM)
@@ -175,7 +183,7 @@ print (popt, FWHM)
 Im = func(yg, popt[0], popt[1], popt[2])
 ax.plot(yg, Im, c='r', label='Best fit')
 ax.plot(popt[1], peak, 'o', color='orange')
-ax.plot(coord, oesq, 'o', color='green')
+ax.plot(coordFWHM, vFWHM, 'o', color='green')
 ax.legend()
 #fig.savefig('model_fit.png')
 
@@ -184,10 +192,13 @@ ax.legend()
 
 yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_squared)
 
-FWHM = np.zeros(len(zi))
-w = np.zeros(len(zi))
-peak = np.zeros(len(zi))
-oesq = np.zeros(len(zi))
+FWHM    =    np.zeros(len(zi))
+vFWHM   =    np.zeros(len(zi))
+coordFWHM =  np.zeros(len(zi))
+w       =    np.zeros(len(zi))
+peak    =    np.zeros(len(zi))
+oesq    =    np.zeros(len(zi))
+sigma   =    np.zeros(len(zi))
 yg = yi[ymin:ymax]
 e = np.e
 
@@ -195,30 +206,33 @@ for z in range(270 , 1250):
     Ig          =   Ii[z][ymin:ymax]
     popt, pcov  =   curve_fit(func, yg, Ig)                             # fit
     FWHM[z]     =   np.abs(2*np.sqrt(2*np.log(2))*popt[2])
+    coordFWHM[z] =  popt[1] + FWHM[z]/2
+    vFWHM[z]    =   func(coordFWHM[z], popt[0], popt[1], popt[2]) 
     peak[z]     =   func(popt[1], popt[0], popt[1], popt[2])
     oesq[z]     =   1/(e**2) * peak[z] 
+    sigma[z]    =   abs(popt[2])
     coord       =   coordfunc(popt[0], popt[1], popt[2], oesq[z]) 
     w[z]        =   abs(popt[1]-coord)
     
 
 plt.plot(w, 'o')
 
-wfit = w[270 : 1250]
-zfit = zi[270 : 1250]
+wfit = FWHM[270 : 1249]
+zfit = zi[270 : 1249]
 #%% Fit 
 def waist(z, a, b, c, d):
-    return b* np.sqrt(1 + (z-c)**2/a**2) + d
+    return b * np.sqrt(1 + (z-c)**2/a**2) + d
 
 # Plot out the current state of the data and model
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.plot(zfit, wfit, c='k', label='Waist')
+fig     =   plt.figure()
+ax      =   fig.add_subplot(111)
+#ax.plot(zfit, wfit, c='k', label='Waist')
 ax.scatter(zfit, wfit)
 
 
 # Executing curve_fit
-popt, pcov  =   curve_fit(waist, zfit, wfit)                                 # fit,  bounds=(-1.97, -0.102)
-Im = waist(zfit, popt[0], popt[1], popt[2], popt[3])
+popt, pcov  =   curve_fit(waist, zfit, wfit, p0=[-0.02, 0.01, -0.15, 0.008])                      # fit,  bounds=(-1.97, -0.102)
+Im          =   waist(zfit, popt[0], popt[1], popt[2], popt[3])
 ax.plot(zfit, Im, c='r', label='Best fit')
 
 #%%
@@ -529,125 +543,4 @@ def plotgriddata(x, y, I_norm, profile, binsize, I_side_max):
 
 #plotgriddata(x, y, I_norm, binsize=0.0015, 0)
 
-#%% fit
-    
-import numpy as np
-from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
-
-x_grid, y_grid, Int = pointsongrid(x, y, I)
-# The two-dimensional domain of the fit.
-#xmin, xmax, nx = x_grid.min(), x_grid.max(), 100
-#ymin, ymax, ny = y_grid.min(), y_grid.max(), 100
-#x, y = np.linspace(xmin, xmax, nx), np.linspace(ymin, ymax, ny)
-X, Y = np.meshgrid(x_grid, y_grid)
-Z = np.nan_to_num(Int)
-
-# Plot the 3D figure of the fitted function and the residuals.
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-ax.plot_surface(X, Y, Z, cmap='plasma')
-ax.set_zlim(0,np.max(Z)+0.2)
-plt.show()
-
-def get_basis(x, y, max_order=4):
-    """Return the fit basis polynomials: 1, x, x^2, ..., xy, x^2y, ... etc."""
-    basis = []
-    for i in range(max_order+1):
-        for j in range(max_order - i +1):
-            basis.append(x**j * y**i)
-    return basis
-
-# We need to ravel the meshgrids of X, Y points to a pair of 1-D arrays.
-x, y = X.ravel(), Y.ravel()
-# Maximum order of polynomial term in the basis.
-max_order = 8
-basis = get_basis(x, y, max_order)
-# Linear, least-squares fit.
-A = np.vstack(basis).T
-b = Z.ravel()
-c, r, rank, s = np.linalg.lstsq(A, b, rcond=None)
-
-print('Fitted parameters:')
-print(c)
-
-# Calculate the fitted surface from the coefficients, c.
-fit = np.sum(c[:, None, None] * np.array(get_basis(X, Y, max_order))
-                .reshape(len(basis), *X.shape), axis=0)
-
-rms = np.sqrt(np.mean((Z - fit)**2))
-print('RMS residual =', rms)
-
-# Plot the 3D figure of the fitted function and the residuals.
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.plot_surface(X, Y, fit, cmap='viridis')
-cset = ax.contourf(X, Y, Z-fit, zdir='z', offset=-4, cmap='viridis')
-ax.set_zlim(-4,np.max(fit))
-plt.show()
-
-# Plot the test data as a 2D image and the fit as overlaid contours.
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.imshow(Z, origin='lower', cmap='viridis',
-          extent=(x.min(), x.max(), y.min(), y.max()))
-ax.contour(X, Y, fit, colors='w')
-plt.show()
-
-
-#%%
-
-# Our function to fit is going to be a sum of two-dimensional Gaussians
-def gaussian(x, y, x0, y0, xalpha, yalpha, A):
-    return A * np.exp( -((x-x0)/xalpha)**2 -((y-y0)/yalpha)**2)
-
-# This is the callable that is passed to curve_fit. M is a (2,N) array
-# where N is the total number of data points in Z, which will be ravelled
-# to one dimension.
-def _gaussian(M, *args):
-    x, y = M
-    arr = np.zeros(x.shape)
-    for i in range(len(args)//5):
-       arr += gaussian(x, y, *args[i*5:i*5+5])
-    return arr
-
-# Initial guesses to the fit parameters.
-guess_prms = [(0, 0, 1, 1, 2),
-              (-1.5, 5, 5, 1, 3),
-              (-1, -1, 1.5, 1.5, 3),
-              (-1, -1, 1.5, 1.5, 6.5)
-             ]
-# Flatten the initial guess parameter list.
-p0 = [p for prms in guess_prms for p in prms]
-
-# We need to ravel the meshgrids of X, Y points to a pair of 1-D arrays.
-xdata = np.vstack((X.ravel(), Y.ravel()))
-# Do the fit, using our custom _gaussian function which understands our
-# flattened (ravelled) ordering of the data points.
-popt, pcov = curve_fit(_gaussian, xdata, Z.ravel(), p0)
-fit = np.zeros(Z.shape)
-for i in range(len(popt)//5):
-    fit += gaussian(X, Y, *popt[i*5:i*5+5])
-print('Fitted parameters:')
-print(popt)
-
-rms = np.sqrt(np.mean((Z - fit)**2))
-print('RMS residual =', rms)
-
-# Plot the 3D figure of the fitted function and the residuals.
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-ax.plot_surface(X, Y, fit, cmap='plasma')
-cset = ax.contourf(X, Y, Z-fit, zdir='z', offset=-4, cmap='plasma')
-ax.set_zlim(np.min(fit),np.max(fit))
-plt.show()
-
-# Plot the test data as a 2D image and the fit as overlaid contours.
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.imshow(Z, origin='bottom', cmap='plasma',
-          extent=(x.min(), x.max(), y.min(), y.max()))
-ax.contour(X, Y, fit, colors='w')
-plt.show()

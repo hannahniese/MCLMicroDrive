@@ -20,9 +20,9 @@ import math
 
 
 ### Importing E-field data
-masterpath   =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
+masterpath   =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_08_19_20x_newchessintsquared"
 #masterpath  =  r"C:\Users\Congreve Optics\Desktop\Hannah\MCLMicroDrive\22_07_07_20x"
-file1        =   '22-07-25_11-25-05_data'
+file1        =   '22-08-19_17-47-18_data'
 ftype        =   '.txt'
 datafile1    =   masterpath + '\\' + file1 + ftype
 outpath      =   masterpath + '\\analysis'
@@ -33,39 +33,13 @@ data1        = np.loadtxt(datafile1, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-file2             =   '22-07-25_12-18-45_data'
+file2             =   '22-08-19_18-13-42_data'
 ftype             =   '.txt'
 datafile2         =    masterpath + '\\' + file2 + ftype
 
 
 data2        = np.loadtxt(datafile2, delimiter=',',  skiprows=1)
 
-#%% normal dataset
-
-# side dataset for normalization
-I_side = side_data[:,7]*1000
-
-# calculate range of Intensitiy for normalization
-delta_I     =   np.abs(I_side.max()-I_side.min())
-
-x = data[:,4]
-y = data[:,5]
-z = data[:,6]
-I = data[:,7]*1000 # convert to mV
-
-
-# normalized datasets
-I_norm = (I - I.min())/delta_I # convert to mV
-
-
-# second dataset
-x_s = side_data[:,4]
-y_s = side_data[:,5]
-z_s = side_data[:,6]
-I_s_norm = (I_side - I.min())/delta_I # convert to mV
-I__limit = I_side
-
-I_squared_max = I_side_norm.max()
 
 #%% positive numbers dataset
 
@@ -94,30 +68,6 @@ I2_pos = (I2 - floor + 1)*10
 I1_squared      = np.square(I1_pos)
 I2_squared      = np.square(I2_pos)
 I_max           = (delta*10)**2
-#%%
-binsize=0.0027
-profile=0
-plotgriddata(x, y, I**2, profile, binsize, I_squared_max) 
-
-profile=1
-plotgriddata(y_side, z_side, I_side**2, profile, binsize, I_squared_max)
-
-#%% plots measurement data on array
-
-yi, zi, I1, gridres = pointsongrid(y1, z1, I1_squared)
-yi, zi, I2, gridres = pointsongrid(y2, z2, I2_squared)
-I2 = np.delete(I2,0,0)
-I2 = np.delete(I2,0,1)
-Added = np.add(I1, I2)
-
-plt.imshow(Added, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=1, vmax=I_max*1.3)
-plt.axis('equal')
-plt.xlabel('y-coordinate [mm]')
-plt.ylabel('z-coordinate [mm]')
-plt.colorbar(label='Intensity')
-
-os.chdir(outpath)
-#plt.savefig('%s_interpolated_norm.png' % file, dpi=600)
 
 #%%
 
@@ -143,10 +93,41 @@ def pointsongrid(x, y, I):
     return xi, yi, Ii, gridresolution
 
 
+#%% plots measurement data on array
 
-# fit gaussian through line plots
+y1i, z1i, I1, gridres = pointsongrid(y1, z1, I1_squared)
+y2i, z2i, I2, gridres = pointsongrid(y2, z2, I2_squared)
 
-yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_squared)
+if 
+I1 = np.delete(I1,0,0)  # manually make them the same dimension
+#I2 = np.delete(I2,0,1)
+Added = np.add(I1, I2)
+
+plt.imshow(Added, cmap='viridis', extent=(y1i.min(), y1i.max(), z1i.min(), z1i.max()), origin='lower')
+plt.axis('equal')
+plt.xlabel('y-coordinate [mm]')
+plt.ylabel('z-coordinate [mm]')
+plt.colorbar(label='Intensity')
+
+os.chdir(outpath)
+#plt.savefig('%s_interpolated_norm.png' % file, dpi=600)
+
+#%% plots measurement data on array
+
+y1i, z1i, I1, gridres = pointsongrid(y1, z1, I1_squared)
+y2i, z2i, I2, gridres = pointsongrid(y2, z2, I2_squared)
+I2 = np.delete(I2,0,0)  # manually make them the same dimension
+I2 = np.delete(I2,0,1)
+Added = np.add(I1, I2)
+
+plt.imshow(I2, cmap='viridis', extent=(y2i.min(), y2i.max(), z2i.min(), z2i.max()), origin='lower', vmin=1, vmax=I_max*1.3)
+plt.axis('equal')
+plt.xlabel('y-coordinate [mm]')
+plt.ylabel('z-coordinate [mm]')
+plt.colorbar(label='Intensity')
+
+os.chdir(outpath)
+#plt.savefig('%s_interpolated_norm.png' % file, dpi=600)
 
 #%% create a function to model and create data
 def func(x, a, x0, sigma):
@@ -187,7 +168,7 @@ ax.legend()
 #%% plot several crosscuts through yz image
 
 z = 0
-for z in range(0 , 2000, z + 200):
+for z in range(1080 , 2000, z + 100):
     # select range of data to be fitted
     yg = yi[ymin:ymax]
     Ig = Added[z][ymin:ymax]
