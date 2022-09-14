@@ -14,12 +14,14 @@ import matplotlib.cm as cm
 import matplotlib.tri as tri
 from scipy.interpolate import griddata
 from scipy.optimize import curve_fit
+import scipy.integrate as integrate
+from scipy.integrate import quad
 
 
 ### Importing E-field data
-masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_07_20x"
-#masterpath  =  r"C:\Users\Congreve Optics\Desktop\Hannah\MCLMicroDrive\22_07_07_20x"
-file        =   '22-07-07_10-58-49_data'
+#masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_07_20x"
+masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
+file        =   '22-07-25_16-28-16_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -30,7 +32,7 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '22-07-07_10-27-23_data'
+side_file   =   '22-07-25_14-47-33_data'
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
@@ -119,7 +121,7 @@ os.chdir(outpath)
 ymin = 100 
 ymax = 1500
 
-z = 1200
+z = 800
 
 
 
@@ -144,8 +146,9 @@ def pointsongrid(x, y, I):
 yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_squared)
 
 #%% create a function to model and create data
+#gaussian
 def func(x, a, x0, sigma):
-	 return a*np.exp(-(x-x0)**2/(2*sigma**2))
+	 return a*np.exp(-(x-x0)**2/(4*sigma**2))
 
 def coordfunc(a, x0, sigma, value):
     return x0 - 2*sigma * np.sqrt(np.log(a/value))
@@ -155,6 +158,11 @@ def FWHMtoSigma(FWHM):
 
 def SigmatoFWHM(sigma):
     return sigma * 2 * np.sqrt(2 * np.ln(2))
+
+# Voigt 
+def Voigt(x, ampG1, cenG1, sigmaG1, ampL1, cenL1, widL1):
+    return (ampG1*(1/(sigmaG1*(np.sqrt(2*np.pi))))*(np.exp(-((x-cenG1)**2)/((2*sigmaG1)**2)))) +\
+              ((ampL1*widL1**2/((x-cenL1)**2+widL1**2)) )
 
 # select range of data to be fitted
 yg = yi[ymin:ymax]
@@ -172,15 +180,19 @@ popt, pcov  =   curve_fit(func, yg, Ig)
 FWHM        =   np.abs(2*np.sqrt(2*np.log(2))*popt[2])
 coordFWHM   =   popt[1] + FWHM/2
 vFWHM       =   func(coordFWHM, popt[0], popt[1], popt[2])   
-peak        =   func(popt[1], popt[0], popt[1], popt[2])
+peak        =   func(popt[1], popt[0], popt[1], popt[2]) 
 oesq        =   1/np.e**2 * np.abs(peak) 
 coord       =   coordfunc(popt[0], popt[1], popt[2], oesq) 
 w           =   coord
+
 
 #popt returns the best fit values for parameters of the given model (func)
 print (popt, FWHM)
 
 Im = func(yg, popt[0], popt[1], popt[2])
+
+area        =   quad(func, -np.inf, np.inf, args=(popt[0], popt[1], popt[2]))
+
 ax.plot(yg, Im, c='r', label='Best fit')
 ax.plot(popt[1], peak, 'o', color='orange')
 ax.plot(coordFWHM, vFWHM, 'o', color='green')
@@ -190,22 +202,29 @@ ax.legend()
 
 #%% gaussian fits for all z values
 
+# range, adjust manually depending on data
+r_start =    270
+r_stop  =    1700
+
 yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_squared)
 
 FWHM    =    np.zeros(len(zi))
 vFWHM   =    np.zeros(len(zi))
 coordFWHM =  np.zeros(len(zi))
 w       =    np.zeros(len(zi))
+a       =    np.zeros(len(zi))
 peak    =    np.zeros(len(zi))
 oesq    =    np.zeros(len(zi))
 sigma   =    np.zeros(len(zi))
+area    =    np.zeros(len(zi))
 yg = yi[ymin:ymax]
 e = np.e
 
-for z in range(270 , 1250):
+for z in range(r_start , r_stop):
     Ig          =   Ii[z][ymin:ymax]
     popt, pcov  =   curve_fit(func, yg, Ig)                             # fit
     FWHM[z]     =   np.abs(2*np.sqrt(2*np.log(2))*popt[2])
+    a[z]        =   popt[0]
     coordFWHM[z] =  popt[1] + FWHM[z]/2
     vFWHM[z]    =   func(coordFWHM[z], popt[0], popt[1], popt[2]) 
     peak[z]     =   func(popt[1], popt[0], popt[1], popt[2])
@@ -213,13 +232,33 @@ for z in range(270 , 1250):
     sigma[z]    =   abs(popt[2])
     coord       =   coordfunc(popt[0], popt[1], popt[2], oesq[z]) 
     w[z]        =   abs(popt[1]-coord)
-    
+    area[z]     =   quad(func, -2, 0, args=(popt[0], popt[1], popt[2]))[0]
 
-plt.plot(w, 'o')
+wfit = FWHM[r_start : r_stop]
+afit = a[r_start : r_stop]
+zfit = zi[r_start : r_stop]
+   
+plt.figure(1)
+plt.plot(FWHM, 'o')
+plt.title('FWHM')
+plt.xlabel('index')
+plt.ylabel('a.u.')
 
-wfit = FWHM[270 : 1249]
-zfit = zi[270 : 1249]
-#%% Fit 
+plt.figure(2)
+plt.plot(a, 'o', label='Maximum')
+plt.title('Maximum')
+plt.xlabel('index')
+plt.ylabel('a.u.')
+
+
+plt.figure(3)
+plt.plot(area, 'o', label='Area')
+plt.title('Area')
+plt.xlabel('index')
+plt.ylabel('a.u.')
+#plt.legend()
+
+#%% Fit Hyperbola to FWHM data
 def waist(z, a, b, c, d):
     return b * np.sqrt(1 + (z-c)**2/a**2) + d
 
@@ -231,9 +270,37 @@ ax.scatter(zfit, wfit)
 
 
 # Executing curve_fit
-popt, pcov  =   curve_fit(waist, zfit, wfit, p0=[-0.02, 0.01, -0.15, 0.008])                      # fit,  bounds=(-1.97, -0.102)
+popt, pcov  =   curve_fit(waist, zfit, wfit, p0=[-0.02, 0.01, -0.15, 0.008])                      # fit,  initial guess p0
 Im          =   waist(zfit, popt[0], popt[1], popt[2], popt[3])
 ax.plot(zfit, Im, c='r', label='Best fit')
+
+#%% Fit Gaussian to peak function
+
+# Plot out the current state of the data and model
+fig     =   plt.figure()
+ax      =   fig.add_subplot(111)
+#ax.plot(zfit, wfit, c='k', label='Waist')
+ax.scatter(zfit, afit)
+
+## Executing curve_fit Voigt 
+#popt, pcov  =   curve_fit(Voigt, zfit, afit)                      # fit,  initial guess p0
+#amp         =   Voigt(zfit, popt[0], popt[1], popt[2], popt[3], popt[4], popt[5])
+#ax.plot(zfit, amp, c='r', label='Best fit')
+#ax.set_title('Voigt')
+
+# Executing curve_fit Gaussian
+popt, pcov  =   curve_fit(func, zfit, afit)                      # fit,  initial guess p0
+amp         =   func(zfit, popt[0], popt[1], popt[2])
+
+#residues gaussian
+#err_func = np.sqrt(np.diag(pcov))
+
+
+
+ax.plot(zfit, amp, c='r', label='Best fit')
+ax.set_title('Gauss')
+
+
 
 #%%
 def gridinterpolation(x,y,I):
