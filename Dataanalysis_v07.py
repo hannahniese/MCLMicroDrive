@@ -2,8 +2,13 @@
 """
 Created on Wed Jun  1 14:15:40 2022
 
+This script analzyes the measurement data of intensity measurements with a scanned
+photodiode. 
+The data is exported as .txt file in the Multimeter script. 
+
 @author: Hannah Niese
 """
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
@@ -18,7 +23,10 @@ import scipy.integrate as integrate
 from scipy.integrate import quad
 
 
-### Importing E-field data
+### Import Measurement Data
+
+# Two measurements of the same 
+
 #masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_07_20x"
 masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
 file        =   '22-07-25_16-28-16_data'
