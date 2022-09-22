@@ -11,6 +11,13 @@ overview of the quality.
 Anything labelled with #VARIABLE(S) is a variable that the use can change, other things should not be changed (unless you want to improve the code)
 """
 
+# reference the stage before first running the script (only once!)
+
+motor = MicroDrive()
+motor.centerHomePosition()
+
+#%% set up all devices and the measurement file
+## if this section gives an error message, try unplugging the Multimeter and diode, restart and re-run the section
 
 # import the necessary modules
 import pyvisa as visa
@@ -50,7 +57,7 @@ motor               =   MicroDrive()
 counter             =    0
 
 # write vital parameters of the measurement into the first line of the file
-file.write('Voltage = 3.8, Current = 20.3, Pinhole = 10um, Objective = 20x, NA = 0.42 \n')
+file.write('Voltage = 4.4, Current = 20.5, Pinhole = 15um, Objective = 20x, NA = 0.42, blue LED \n')
 
 # measurement function
 def measure(xcoord, ycoord, zcoord, c):
