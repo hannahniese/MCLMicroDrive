@@ -89,15 +89,15 @@ def quickmeasure(xcoord, ycoord, zcoord):
 # VARIABLES
     
 # define step sizes and error for the stage movements
-xstep   =    0.001       # in mm
+xstep   =    0.001         # in mm
 ystep   =    xstep
 zstep   =    0.1          # distance between z planes in mm 
 error   =    0.001        # error in mm
 
 # define starting location
-xcoord  =    9.22   #10.535
-ycoord  =    -2.65
-zcoord  =    5.85 #-0.415        # -0.415 z planes will have positive addition 
+xcoord  =    10.35    #
+ycoord  =    1.9
+zcoord  =    0.5   #        # -0.415 z planes will have positive addition 
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error) # use these two functions to update location and check if there is signal
 quickmeasure(xcoord, ycoord, zcoord)
@@ -117,8 +117,8 @@ c = 0
 d = 0
 
 # define the number of acquisitions and the number of planes that should be sampled
-acq     =   120          # VARIABLE
-planes  =   1           # VARIABLE
+acq     =   40           # VARIABLE  estimate: 30 for simple measurement, 60 for adjusting, 120 for high quality measurement
+planes  =   1            # VARIABLE
 
 motor.moveControlled(xcoord, ycoord, zcoord, velocity = 3, errorMove = error)
 measure(xcoord, ycoord, zcoord, c)
@@ -206,7 +206,7 @@ plt.savefig('%s_3D.png' % dataTimeString, dpi=600)
 
 ystep   =   0.005
 zstep   =   ystep
-acq     =   30         # number of sides of acquisitions
+acq     =   80         # number of sides of acquisitions
 
 
 ysign = 1
