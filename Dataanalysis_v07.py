@@ -28,8 +28,8 @@ from scipy.integrate import quad
 # Two measurements of the same 
 
 #masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_07_20x"
-masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
-file        =   '22-07-25_16-28-16_data'
+masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_09_22_20x_withArynn"
+file        =   '22-09-22_11-51-54_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -40,7 +40,7 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '22-07-25_14-47-33_data'
+side_file   =   '22-09-22_14-02-03_data'
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
@@ -101,37 +101,9 @@ I_side_pos = I_side - I_side.min() # convert to mV
 
 I_squared       = np.square(I_pos)
 I_side_squared  = np.square(I_side_pos)
-#%%
-binsize=0.0027
-profile=0
-plotgriddata(x, y, I**2, profile, binsize, I_squared_max) 
 
-profile=1
-plotgriddata(y_side, z_side, I_side**2, profile, binsize, I_squared_max)
 
 #%%
-
-yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
-#yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
-
-plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1)
-plt.axis('equal')
-plt.xlabel('x-coordinate [mm]')
-plt.ylabel('y-coordinate [mm]')
-plt.colorbar(label='Intensity')
-
-os.chdir(outpath)
-#plt.savefig('%s_interpolated_norm.png' % file, dpi=600)
-
-#%%
-
-# yz plots
-ymin = 100 
-ymax = 1500
-
-z = 800
-
-
 
 def pointsongrid(x, y, I):
     # input: takes coordinates and intensities at measured locations
@@ -146,6 +118,45 @@ def pointsongrid(x, y, I):
     Ii = griddata((x, y), I, (xi[None, :], yi[:, None]), method='linear')
     
     return xi, yi, Ii, gridresolution
+
+yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
+#yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
+
+plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1.5)
+plt.axis('equal')
+plt.xlabel('x-coordinate [mm]')
+plt.ylabel('z-coordinate [mm]')
+plt.colorbar(label='Intensity')
+
+os.chdir(outpath)
+plt.savefig('%s_interpolated_pos.png' % side_file, dpi=600)
+
+#%% xy image
+
+xii, yii, Iii, gridres = pointsongrid(x, y, I_pos)
+#yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
+
+plt.imshow(Iii, cmap='viridis', extent=(xii.min(), xii.max(), yii.min(), yii.max()), origin='lower', vmin=0, vmax=1.5)
+plt.axis('equal')
+plt.xlabel('x-coordinate [mm]')
+plt.ylabel('y-coordinate [mm]')
+plt.colorbar(label='Intensity')
+
+os.chdir(outpath)
+plt.savefig('%s_interpolated_pos.png' % file, dpi=600)
+
+
+#%%
+
+# yz plots
+ymin = 100 
+ymax = 1500
+
+z = 800
+
+
+
+
 
 
 
@@ -451,6 +462,13 @@ plt.savefig('%s_values_1.png' % file, dpi=600)
 
 #%% Meshgrid trial
 
+#%%
+binsize=0.0027
+profile=0
+plotgriddata(x, y, I**2, profile, binsize, I_squared_max) 
+
+profile=1
+plotgriddata(y_side, z_side, I_side**2, profile, binsize, I_squared_max)
 
 def gridondata(x, y, z, binsize, retbin=True, retloc=True):
     """
