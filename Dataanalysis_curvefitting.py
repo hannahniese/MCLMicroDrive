@@ -392,6 +392,8 @@ def pixel(x, x0, z):
 
 xmin = -1.6 #-1.875
 xmax = -1.4  #-1.67
+ymin = -0.1
+ymax = 0.1
 zmin = -0.7
 zmax = -0.5
 res  = 0.0005
@@ -445,30 +447,22 @@ ax1.set_title('1, 2, 4 pixels')
 
 
 #%% 2D gaussian functions for pixels
-from mayavi import mlab
+
 def pixel3D(x, y, x0, y0, z):
     
     pixel3Dfunc = func3D(x, y, func(z, amp_peak, mid_peak, sig_peak), x0, y0, waist(z, a_sig, b_sig, c_sig, d_sig))
         
-    return pixelfunc
+    return pixel3Dfunc
 
 x = np.arange(xmin,xmax,res)
-y = np.arange(xmin,xmax,res)
+x = x[2:]
+y = np.arange(ymin,ymax,res)
 z = np.arange(zmin,zmax,res)
-xgrid, ygrid, zgrid = np.meshgrid(x,y,z)
+xgrid, ygrid, zgrid = np.mgrid[xmin:xmax:res, ymin:ymax:res, zmin:zmax:res]
 
-H3d = pixel3D(x, y -1.463, 0, z)
+H3d = pixel3D(xgrid, ygrid, -1.463, 0, zgrid)
 
-# Plot scatter with mayavi
-figure = mlab.figure('DensityPlot')
-
-grid = mlab.pipeline.scalar_field(xi, yi, zi, density)
-min = density.min()
-max=density.max()
-mlab.pipeline.volume(grid, vmin=min, vmax=min + .5*(max-min))
-
-mlab.axes()
-mlab.show()
+plt.scatter(xgrid, ygrid, zgrid, c=H3d)
 
 fig, (ax1) = plt.subplots(ncols=1)
 
