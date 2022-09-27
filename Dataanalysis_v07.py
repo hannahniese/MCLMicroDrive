@@ -28,8 +28,8 @@ from scipy.integrate import quad
 # Two measurements of the same 
 
 #masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_07_20x"
-masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_09_22_20x_withArynn"
-file        =   '22-09-22_11-51-54_data'
+masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
+file        =   '22-07-25_13-58-18_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -40,7 +40,7 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '22-09-22_14-02-03_data'
+side_file   =   '22-07-25_14-14-31_data'
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
@@ -122,11 +122,13 @@ def pointsongrid(x, y, I):
 yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
 #yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
 
-plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1.5)
+plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=4)
 plt.axis('equal')
 plt.xlabel('x-coordinate [mm]')
 plt.ylabel('z-coordinate [mm]')
 plt.colorbar(label='Intensity')
+
+
 
 os.chdir(outpath)
 plt.savefig('%s_interpolated_pos.png' % side_file, dpi=600)
@@ -150,7 +152,7 @@ plt.savefig('%s_interpolated_pos.png' % file, dpi=600)
 
 # yz plots
 ymin = 100 
-ymax = 1500
+ymax = 900
 
 z = 800
 
