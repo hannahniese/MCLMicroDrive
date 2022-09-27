@@ -1,0 +1,1 @@
+Voltage = 4.4, Current = 20.5, Pinhole = 15um, Objective = 20x, NA = 0.42, blue LED 
