@@ -29,8 +29,10 @@ from pylab import meshgrid,cm,imshow,contour,clabel,colorbar,axis,title,show
 # Two measurements of the same 
 
 #masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_07_20x"
-masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
-file        =   '22-07-25_16-28-16_data'
+#masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
+masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_09_27_20x_singlepixels"
+#file        =   '22-07-25_16-28-16_data'
+file        =   '22-09-27_10-20-10_data'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -41,7 +43,8 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '22-07-25_14-47-33_data'
+#side_file   =   '22-07-25_14-47-33_data'
+side_file        =   '22-09-27_10-20-10_data'
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
@@ -148,22 +151,22 @@ I_side_squared  = np.square(I_side_pos)
 yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
 #yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
 
-plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=2)
+plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1.5)
 plt.axis('equal')
 plt.xlabel('x-coordinate [mm]')
 plt.ylabel('y-coordinate [mm]')
 plt.colorbar(label='Intensity')
 
 os.chdir(outpath)
-#plt.savefig('%s_interpolated_norm.png' % file, dpi=600)
+plt.savefig('%s_interpolated_pos.png' % file, dpi=600)
 
 #%%
 
 # yz plots
-ymin = 200 
-ymax = 1900
+ymin = 1
+ymax = 705
 
-z = 300
+z = 540
 
 
 # fit gaussian through line plots
@@ -182,7 +185,8 @@ ax.plot(yg, Ig, c='k', label='Function')
 ax.scatter(yg, Ig)
 
 # Executing curve_fit
-popt, pcov  =   curve_fit(func, yg, Ig, p0=[0.3, -1.77, -0.004])
+#popt, pcov  =   curve_fit(func, yg, Ig, p0=[0.3, -1.77, -0.004])
+popt, pcov  =   curve_fit(func, yg, Ig, p0=[1, 1.91, -0.004])
 sigma       =   abs(popt[2])
 coordSigma  =   coordfunc(popt[0], popt[1], popt[2], sigma)
 FWHM        =   np.abs(2.355*popt[2])
@@ -211,8 +215,8 @@ ax.legend()
 #%% gaussian fits for all z values
 
 # range, adjust manually depending on data
-r_start =    300
-r_stop  =    1650
+r_start =    45
+r_stop  =    540
 
 yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
 
@@ -236,7 +240,8 @@ e = np.e
 
 for z in range(r_start , r_stop):
     Ig              =   Ii[z][ymin:ymax]
-    popt, pcov      =   curve_fit(func, yg, Ig, p0=[0.3, -1.77, -0.004])                             # fit
+    #popt, pcov      =   curve_fit(func, yg, Ig, p0=[0.3, -1.77, -0.004])                  # fit
+    popt, pcov      =   curve_fit(func, yg, Ig, p0=[1, 1.91, -0.004])                  # fit
     FWHM[z]         =   np.abs(2*np.sqrt(2*np.log(2))*popt[2])
     a[z]            =   popt[0]
     x0[z]           =   popt[1]
@@ -249,12 +254,12 @@ for z in range(r_start , r_stop):
     coord           =   coordfunc(popt[0], popt[1], popt[2], oesq[z]) 
     w[z]            =   abs(popt[1]-coord)
     area[z]         =   quad(func, -5, 0, args=(popt[0], popt[1], popt[2]))[0]        # calculate the area underneath the fitted curve
-    corrfact[z]     =   1/area[z]                                                     # calculate a factor that normalizes the area to the value of 1
-    adjmaxima[z]    =   np.multiply(corrfact[z], a[z])                                      # 'normalize' the maxima by multiplying with the correction factor
-    adjarea[z]      =   quad(func, -5, 0, args=(adjmaxima[z], popt[1], popt[2]))[0] 
+    #corrfact[z]     =   1/(area[z]+0.0000000000000001)                                # calculate a factor that normalizes the area to the value of 1
+    #adjmaxima[z]    =   np.multiply(corrfact[z], a[z])                                # 'normalize' the maxima by multiplying with the correction factor
+    #adjarea[z]      =   quad(func, -5, 0, args=(adjmaxima[z], popt[1], popt[2]))[0] 
 
 wfit = sigma[r_start : r_stop]              # crop data to avoid overfitting
-afit = a[r_start : r_stop]          # crop data to avoid overfitting
+afit = a[r_start : r_stop]                  # crop data to avoid overfitting
 zfit = zi[r_start : r_stop]                 # crop data to avoid overfitting
    
 plt.figure(1)
@@ -358,12 +363,12 @@ ax.set_title('Gauss')
 
 #%% plotting all fits together
 
-fig, (ax1, ax2, ax3) = plt.subplots(figsize=(13,3), gridspec_kw={'width_ratios': [2, 1, 1]}, ncols=3)
+fig, (ax2, ax3, ax1) = plt.subplots(figsize=(9,3), gridspec_kw={'width_ratios': [1, 1, 2]}, ncols=3)
 
-overview = ax1.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1)
+overview = ax1.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1.5)
 ax1.axis('equal')
 ax1.set_xlabel('x-coordinate [mm]')
-ax1.set_ylabel('z-coordinate [mm]')
+#ax1.axes.yaxis.set_ticklabels([])
 ax1.set_title('Measured data')
 ax1.set_aspect('equal', 'box')
 colorbar(overview, ax=ax1)
@@ -371,13 +376,20 @@ colorbar(overview, ax=ax1)
 
 ax2.scatter(wfit, zfit, s=2)
 ax2.plot(Im, zfit, c='r', label='Best fit')
-ax2.set_title('Sigma values of gaussian fit')
-ax2.legend()
+ax2.set_title('Sigma fit')
+ax2.set_ylabel('z-coordinate [mm]')
+ax2.set_xlabel('Sigma')
+#ax2.legend()
 
 ax3.scatter(afit, zfit, s=2)
 ax3.plot(amp, zfit, c='r', label='Best fit')
-ax3.set_title('Maximum of gaussian fit')
+ax3.set_title('Maxima fit')
 ax3.legend()
+ax3.set_xlabel('Maximum value')
+ax3.axes.yaxis.set_ticklabels([])
+
+os.chdir(outpath)
+plt.savefig('%s_fitting_functions.png' % side_file, dpi=600)
 
 #%% fit those two together to recreate a function
 
@@ -402,50 +414,49 @@ def pixel(x, x0, z):
     
     return pixelfunc
 
-xmin = -1.6 #-1.875
-xmax = -1.4  #-1.67
+xmin = yi.min() #-1.875
+xmax = yi.max()  #-1.67
 ymin = -0.1
 ymax = 0.1
-zmin = -0.7
-zmax = -0.5
+zmin = zi.min()
+zmax = zi.max()
 res  = 0.0005
 
 x = np.arange(xmin,xmax,res)
 z = np.arange(zmin,zmax,res)
 x,z = meshgrid(x,z)
 
-H = pixel(x, -1.463, z)
-I = pixel(x, -1.469, z)
-J = pixel(x, -1.475, z)
-K = pixel(x, -1.481, z)
+H = pixel(x, 1.91, z)
+I = pixel(x, 1.915, z)
+J = pixel(x, 1.92, z)
 
-L = pixel(x, -1.5, z)
-M = pixel(x, -1.506, z)
+#L = pixel(x, -1.5, z)
+#M = pixel(x, -1.506, z)
 
-N = pixel(x, -1.525, z)
+#N = pixel(x, -1.525, z)
 
-added = H + I + J + K + L + M + N 
+added = H #+ I + J + K + L + M + N 
 squared = np.square(added)
 
-raster1 = np.square(H + J + L + N)
-raster2 = np.square(I + K + M)
+raster1 = np.square(H + J ) #+ L + N
+raster2 = np.square(I)
 raster  = raster1 + raster2
 
 vmin = np.min(squared)
-vmax = np.max(squared)
+vmax = 3
 
 fig, (ax1, ax2, ax3) = plt.subplots(figsize=(8,3), ncols=3)
 
-add = ax1.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=np.max(added), interpolation = 'none')
-ax1.set_title('Normal')
+add = ax1.imshow(H, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax1.set_title('1 pixel')
 #ax1.contour(add, origin='lower', colors=['white'])
 
-one = ax2.imshow(squared, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
-ax2.set_title('Squared')
+one = ax2.imshow(H+I, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax2.set_title('2 pixel')
 ax2.axes.yaxis.set_ticklabels([])
 
-two = ax3.imshow(raster, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=np.max(raster), interpolation = 'none')
-ax3.set_title('Raster Squared')
+two = ax3.imshow(H+I+J, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax3.set_title('3 pixel')
 ax3.axes.yaxis.set_ticklabels([])
 
 #fig.colorbar(add, ax=ax3)
@@ -456,6 +467,26 @@ fig, (ax1) = plt.subplots(ncols=1)
 add = ax1.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
 ax1.set_title('1, 2, 4 pixels')
 #ax1.contour(add, origin='lower', colors=['w
+
+#%% data and simulation
+
+fig, (ax1, ax2) = plt.subplots(figsize=(6,3), ncols=2)
+
+overview = ax1.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=vmin, vmax=1.5)
+ax1.axis('equal')
+ax1.set_xlabel('x-coordinate [mm]')
+ax1.set_ylabel('z-coordinate [mm]')
+ax1.set_title('Measured data')
+ax1.set_aspect('equal', 'box')
+#colorbar(overview, ax=ax1)
+
+one = ax2.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=1.5, interpolation = 'none')
+ax2.set_title('Simulated data')
+ax2.set_xlabel('x-coordinate [mm]')
+ax2.axes.yaxis.set_ticklabels([])
+
+os.chdir(outpath)
+plt.savefig('%s_measured_simulated.png' % side_file, dpi=600)
 
 
 #%% recreate the three small pixels
