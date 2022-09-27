@@ -67,6 +67,9 @@ def pointsongrid(x, y, I):
 #gaussian
 def func(x, a, x0, sigma):
 	 return a*np.exp(-(x-x0)**2/(4*sigma**2))
+ 
+def func3D(x, y, a, x0, y0, sigma):
+	 return a*np.exp(-(x-x0)**2/(4*sigma**2)+(y-y0)**2/(4*sigma**2))
 
 def coordfunc(a, x0, sigma, value):
     return x0 - 2*sigma * np.sqrt(np.log(a/value))
@@ -215,57 +218,78 @@ r_stop  =    1650
 
 yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
 
-FWHM    =    np.zeros(len(zi))
-vFWHM   =    np.zeros(len(zi))
-coordFWHM =  np.zeros(len(zi))
-w       =    np.zeros(len(zi))
-a       =    np.zeros(len(zi))
-peak    =    np.zeros(len(zi))
-oesq    =    np.zeros(len(zi))
-sigma   =    np.zeros(len(zi))
-coordsig=    np.zeros(len(zi))
-area    =    np.zeros(len(zi))
+FWHM         =    np.zeros(len(zi))
+vFWHM        =    np.zeros(len(zi))
+coordFWHM    =    np.zeros(len(zi))
+w            =    np.zeros(len(zi))
+x0           =    np.zeros(len(zi))
+a            =    np.zeros(len(zi))
+peak         =    np.zeros(len(zi))
+oesq         =    np.zeros(len(zi))
+sigma        =    np.zeros(len(zi))
+coordsig     =    np.zeros(len(zi))
+area         =    np.zeros(len(zi))
+adjarea      =    np.zeros(len(zi))
+corrfact     =    np.zeros(len(zi))
+adjmaxima    =    np.zeros(len(zi))
+
 yg = yi[ymin:ymax]
 e = np.e
 
 for z in range(r_start , r_stop):
-    Ig          =   Ii[z][ymin:ymax]
-    popt, pcov  =   curve_fit(func, yg, Ig, p0=[0.3, -1.77, -0.004])                             # fit
-    FWHM[z]     =   np.abs(2*np.sqrt(2*np.log(2))*popt[2])
-    a[z]        =   popt[0]
-    coordFWHM[z] =  popt[1] + FWHM[z]/2
-    vFWHM[z]    =   func(coordFWHM[z], popt[0], popt[1], popt[2]) 
-    peak[z]     =   func(popt[1], popt[0], popt[1], popt[2])
-    oesq[z]     =   1/(e**2) * peak[z] 
-    sigma[z]    =   abs(popt[2])
-    coordsig[z] =   coordfunc(popt[0], popt[1], popt[2], sigma[z]) 
-    coord       =   coordfunc(popt[0], popt[1], popt[2], oesq[z]) 
-    w[z]        =   abs(popt[1]-coord)
-    area[z]     =   quad(func, -2, 0, args=(popt[0], popt[1], popt[2]))[0]
+    Ig              =   Ii[z][ymin:ymax]
+    popt, pcov      =   curve_fit(func, yg, Ig, p0=[0.3, -1.77, -0.004])                             # fit
+    FWHM[z]         =   np.abs(2*np.sqrt(2*np.log(2))*popt[2])
+    a[z]            =   popt[0]
+    x0[z]           =   popt[1]
+    coordFWHM[z]    =   popt[1] + FWHM[z]/2
+    vFWHM[z]        =   func(coordFWHM[z], popt[0], popt[1], popt[2]) 
+    peak[z]         =   func(popt[1], popt[0], popt[1], popt[2])
+    oesq[z]         =   1/(e**2) * peak[z] 
+    sigma[z]        =   abs(popt[2])
+    coordsig[z]     =   coordfunc(popt[0], popt[1], popt[2], sigma[z]) 
+    coord           =   coordfunc(popt[0], popt[1], popt[2], oesq[z]) 
+    w[z]            =   abs(popt[1]-coord)
+    area[z]         =   quad(func, -5, 0, args=(popt[0], popt[1], popt[2]))[0]        # calculate the area underneath the fitted curve
+    corrfact[z]     =   1/area[z]                                                     # calculate a factor that normalizes the area to the value of 1
+    adjmaxima[z]    =   np.multiply(corrfact[z], a[z])                                      # 'normalize' the maxima by multiplying with the correction factor
+    adjarea[z]      =   quad(func, -5, 0, args=(adjmaxima[z], popt[1], popt[2]))[0] 
 
-wfit = sigma[r_start : r_stop]
-afit = a[r_start : r_stop]
-zfit = zi[r_start : r_stop]
+wfit = sigma[r_start : r_stop]              # crop data to avoid overfitting
+afit = adjmaxima[r_start : r_stop]          # crop data to avoid overfitting
+zfit = zi[r_start : r_stop]                 # crop data to avoid overfitting
    
 plt.figure(1)
-plt.plot(sigma, 'o')
-plt.title('sigma')
-plt.xlabel('index')
-plt.ylabel('a.u.')
+plt.plot(sigma, zi, 'o')
+plt.title('Sigma')
+plt.ylabel('z-coordinate')
+plt.xlabel('a.u.')
 
 plt.figure(2)
-plt.plot(a, 'o', label='Maximum')
+plt.plot(a, zi, 'o', label='Maximum')
 plt.title('Maximum')
-plt.xlabel('index')
-plt.ylabel('a.u.')
+plt.ylabel('z-coordinate')
+plt.xlabel('a.u.')
 
 
 plt.figure(3)
-plt.plot(area, 'o', label='Area')
+plt.plot(area, zi, 'o', label='Area')
 plt.title('Area')
-plt.xlabel('index')
-plt.ylabel('a.u.')
+plt.ylabel('z-coordinate')
+plt.xlabel('a.u.')
 #plt.legend()
+
+plt.figure(4)
+plt.plot(adjmaxima, zi, 'o', label='Adjusted Maxima')
+plt.title('Adjusted Maxima')
+plt.ylabel('z-coordinate')
+plt.xlabel('a.u.')
+
+plt.figure(5)
+plt.plot(adjarea, zi, 'o', label='Adjusted Area')
+plt.title('Adjusted Area')
+plt.ylabel('z-coordinate')
+plt.xlabel('a.u.')
 
 #%% Fit Hyperbola to FWHM data
 def waist(z, a, b, c, d):
@@ -318,6 +342,8 @@ sig_peak = popt_peak[2]
 ax.plot(amp, zfit, c='r', label='Best fit')
 ax.set_title('Gauss')
 
+
+
 #%% plotting all fits together
 
 fig, (ax1, ax2, ax3) = plt.subplots(figsize=(13,3), gridspec_kw={'width_ratios': [2, 1, 1]}, ncols=3)
@@ -343,52 +369,134 @@ ax3.legend()
 
 #%% fit those two together to recreate a function
 
+def fit01(x, a, b, c):
+    y =  a * (-x+c)**2 + b
+    return y
+
+# Fit amplitude along z
+fig     =   plt.figure()
+ax      =   fig.add_subplot(111)
+ax.scatter(zfit, afit)
+popt_peak, pcov_peak  =   curve_fit(fit01, zfit, afit, p0=[0.5, 55, -0.6])                      # fit,  initial guess p0
+amp         =   fit01(zfit, popt_peak[0], popt_peak[1], popt_peak[2])
+ax.plot(zfit, amp, c='r', label='Best fit')
+ax.set_title('smoothmaxima quadratic')
+
+#%%
+
 def pixel(x, x0, z):
     
-    pixelfunc = func(x, func(z, amp_peak, mid_peak, sig_peak), x0, waist(z, a_sig, b_sig, c_sig, d_sig))
+    pixelfunc = func(x, func(z, amp_peak, mid_peak, sig_peak), x0, waist(z, a_sig, b_sig, c_sig, d_sig)) # gaussiannormal(x, x0, sigma)
     
     return pixelfunc
 
-xmin = -1.875
-xmax = -1.67
+xmin = -1.6 #-1.875
+xmax = -1.4  #-1.67
+ymin = -0.1
+ymax = 0.1
 zmin = -0.7
 zmax = -0.5
-res  = 0.0001
+res  = 0.0005
 
 x = np.arange(xmin,xmax,res)
 z = np.arange(zmin,zmax,res)
 x,z = meshgrid(x,z)
-H = pixel(x, -1.77, z)
-I = pixel(x, -1.775, z)
 
-J = pixel(x, -1.78, z)
-K = pixel(x, -1.785, z)
+H = pixel(x, -1.463, z)
+I = pixel(x, -1.469, z)
+J = pixel(x, -1.475, z)
+K = pixel(x, -1.481, z)
 
-added = np.add(H, I)
-vmin = np.min(added)
-vmax = np.max(added)
+L = pixel(x, -1.5, z)
+M = pixel(x, -1.506, z)
 
-fig, (ax1, ax2, ax3) = plt.subplots(figsize=(13,3), ncols=3)
+N = pixel(x, -1.525, z)
 
-add = ax1.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
-ax1.set_title('2 pixels with 5um distance')
+added = H + I + J + K + L + M + N 
+squared = np.square(added)
+
+raster1 = np.square(H + J + L + N)
+raster2 = np.square(I + K + M)
+raster  = raster1 + raster2
+
+vmin = np.min(squared)
+vmax = np.max(squared)
+
+fig, (ax1, ax2, ax3) = plt.subplots(figsize=(8,3), ncols=3)
+
+add = ax1.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=np.max(added), interpolation = 'none')
+ax1.set_title('Normal')
 #ax1.contour(add, origin='lower', colors=['white'])
 
-addtwo = np.add(J, K)
-addall = np.add(added, addtwo)
-one = ax2.imshow(addall, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
-ax2.set_title('4 pixels with 5um distance each')
+one = ax2.imshow(squared, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax2.set_title('Squared')
+ax2.axes.yaxis.set_ticklabels([])
 
-two = ax3.imshow(I, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
-ax3.set_title('one pixel')
+two = ax3.imshow(raster, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=np.max(raster), interpolation = 'none')
+ax3.set_title('Raster Squared')
+ax3.axes.yaxis.set_ticklabels([])
 
 #fig.colorbar(add, ax=ax3)
+
+#%% single image
+fig, (ax1) = plt.subplots(ncols=1)
+
+add = ax1.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax1.set_title('1, 2, 4 pixels')
+#ax1.contour(add, origin='lower', colors=['w
+
+
+#%% 2D gaussian functions for pixels
+
+def pixel3D(x, y, x0, y0, z):
+    
+    pixel3Dfunc = func3D(x, y, func(z, amp_peak, mid_peak, sig_peak), x0, y0, waist(z, a_sig, b_sig, c_sig, d_sig))
+        
+    return pixel3Dfunc
+
+x = np.arange(xmin,xmax,res)
+x = x[2:]
+y = np.arange(ymin,ymax,res)
+z = np.arange(zmin,zmax,res)
+xgrid, ygrid, zgrid = np.mgrid[xmin:xmax:res, ymin:ymax:res, zmin:zmax:res]
+
+H3d = pixel3D(xgrid, ygrid, -1.463, 0, zgrid)
+
+plt.scatter(xgrid, ygrid, zgrid, c=H3d)
+
+fig, (ax1) = plt.subplots(ncols=1)
+
+add = ax1.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax1.set_title('1, 2, 4 pixels')
 
 
 #%% OLD STUFF
 
 
+#%% find maxima by keeping the integrated area constant, referencing the z layer with the highest maximum
 
+amax = afit.max()
+sigmin = wfit.min()
+smoothmaxima = np.zeros(len(zi))
+
+def gaussian(x, mu, sig):
+    prob_density = (np.pi*sd) * np.exp(-0.5*((x-mean)/sd)**2)
+    return prob_density
+
+def amplitudefunction(x, x0, sigma, sigmin):
+    function = np.exp(-(x-x0)**2/(4*sigma**2)+(x-x0)**2/(4*sigmin**2))
+    return function
+
+def equalarea(x0, sigma, sigmin, amax):
+    
+    amplitude = amax * quad(amplitudefunction, -5, 0, args=(x0, sigma, sigmin))[0]
+    return amplitude
+    
+for z in range(r_start , r_stop):
+    smoothmaxima[z]  =  a[z] * equalarea(x0[z], sigma[z], sigmin, amax)
+    
+for z in range(r_start , r_stop):
+    smoothmaxima[z] = gaussiannormal(x, x0[z], sigma[z]).max()
 
 
 #%%
