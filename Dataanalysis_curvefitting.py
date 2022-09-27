@@ -171,11 +171,9 @@ yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
 
 #%% create a function to model and create data
 
-
 # select range of data to be fitted
 yg = yi[ymin:ymax]
 Ig = Ii[z][ymin:ymax]
-
 
 # Plot out the current state of the data and model
 fig = plt.figure()
@@ -256,7 +254,7 @@ for z in range(r_start , r_stop):
     adjarea[z]      =   quad(func, -5, 0, args=(adjmaxima[z], popt[1], popt[2]))[0] 
 
 wfit = sigma[r_start : r_stop]              # crop data to avoid overfitting
-afit = adjmaxima[r_start : r_stop]          # crop data to avoid overfitting
+afit = a[r_start : r_stop]          # crop data to avoid overfitting
 zfit = zi[r_start : r_stop]                 # crop data to avoid overfitting
    
 plt.figure(1)
@@ -311,6 +309,20 @@ a_sig = popt_sig[0]
 b_sig = popt_sig[1]
 c_sig = popt_sig[2]
 d_sig = popt_sig[3]
+
+
+#%% analyze data in vertical direction
+
+x_zdir = 300
+I_zdir = Ii[x][:]
+zg = zi[:]
+
+
+# Plot out the current state of the data and model
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.plot(zg, I_zdir, c='k', label='Function')
+ax.scatter(zg, I_zdir)
 
 #%% Fit Gaussian to peak function
 
@@ -382,7 +394,7 @@ amp         =   fit01(zfit, popt_peak[0], popt_peak[1], popt_peak[2])
 ax.plot(zfit, amp, c='r', label='Best fit')
 ax.set_title('smoothmaxima quadratic')
 
-#%%
+#%% recreate the four squares image
 
 def pixel(x, x0, z):
     
@@ -444,6 +456,64 @@ fig, (ax1) = plt.subplots(ncols=1)
 add = ax1.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
 ax1.set_title('1, 2, 4 pixels')
 #ax1.contour(add, origin='lower', colors=['w
+
+
+#%% recreate the three small pixels
+
+def pixel(x, x0, z):
+    
+    pixelfunc = func(x, func(z, amp_peak, mid_peak, sig_peak), x0, waist(z, a_sig, b_sig, c_sig, d_sig)) # gaussiannormal(x, x0, sigma)
+    
+    return pixelfunc
+
+xmin = -1.875 #-1.875
+xmax = -1.675  #-1.67
+ymin = -0.1
+ymax = 0.1
+zmin = -0.7
+zmax = -0.5
+res  = 0.0001
+
+x = np.arange(xmin,xmax,res)
+z = np.arange(zmin,zmax,res)
+x,z = meshgrid(x,z)
+
+H = pixel(x, -1.840, z)
+I = pixel(x, -1.835, z)
+J = pixel(x, -1.830, z)
+K = pixel(x, -1.825, z)
+
+L = pixel(x, -1.775, z)
+
+N = pixel(x, -1.525, z)/2
+
+added = H + I + J + L + N 
+squared = np.square(added)
+
+raster1 = np.square(H + J + L + N)
+raster2 = np.square(I)
+raster  = raster1 + raster2
+
+vmin = np.min(squared)
+vmax = np.max(squared)
+
+fig, (ax1, ax2, ax3) = plt.subplots(figsize=(8,3), ncols=3)
+
+add = ax1.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=np.max(added), interpolation = 'none')
+ax1.set_title('Normal')
+#ax1.contour(add, origin='lower', colors=['white'])
+
+one = ax2.imshow(squared, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax2.set_title('Squared')
+ax2.axes.yaxis.set_ticklabels([])
+
+two = ax3.imshow(raster, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=np.max(raster), interpolation = 'none')
+ax3.set_title('Raster Squared')
+ax3.axes.yaxis.set_ticklabels([])
+
+#fig.colorbar(add, ax=ax3)
+
+
 
 
 #%% 2D gaussian functions for pixels
