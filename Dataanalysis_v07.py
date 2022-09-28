@@ -28,8 +28,15 @@ from scipy.integrate import quad
 # Two measurements of the same 
 
 #masterpath  =   r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_07_20x"
-masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
-file        =   '22-07-25_13-58-18_data'
+
+#masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
+#file        =   '22-07-25_13-58-18_data'
+#side_file   =   '22-07-25_14-14-31_data'
+
+masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_09_27_20x_singlepixels"
+file        =   '22-09-27_10-38-02_data_twopixel'
+side_file        =   '22-09-27_10-20-10_data_onepixel'
+
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -40,7 +47,7 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 
 # import sideprofile
-side_file   =   '22-07-25_14-14-31_data'
+
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
@@ -122,7 +129,7 @@ def pointsongrid(x, y, I):
 yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
 #yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
 
-plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=4)
+plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=3)
 plt.axis('equal')
 plt.xlabel('x-coordinate [mm]')
 plt.ylabel('z-coordinate [mm]')
@@ -138,7 +145,7 @@ plt.savefig('%s_interpolated_pos.png' % side_file, dpi=600)
 xii, yii, Iii, gridres = pointsongrid(x, y, I_pos)
 #yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
 
-plt.imshow(Iii, cmap='viridis', extent=(xii.min(), xii.max(), yii.min(), yii.max()), origin='lower', vmin=0, vmax=1.5)
+plt.imshow(Iii, cmap='viridis', extent=(xii.min(), xii.max(), yii.min(), yii.max()), origin='lower', vmin=0, vmax=3)
 plt.axis('equal')
 plt.xlabel('x-coordinate [mm]')
 plt.ylabel('y-coordinate [mm]')
@@ -403,14 +410,14 @@ plt.savefig('%s_2D_norm.png' % file, dpi=600)
 
 #%% plotting data as heatmap xz plane
 
-plt.scatter(y_side, z_side, c=I_side_norm, cmap='viridis', marker="s", s=6, vmin=0, vmax=1)
+plt.scatter(y_side, z_side, c=I_side_pos, cmap='viridis', marker="s", s=6, vmin=0, vmax=3)
 plt.axis('equal')
 plt.xlabel('y-coordinate [mm]')
 plt.ylabel('z-coordinate [mm]')
 plt.colorbar(label='Intensity')
 
 os.chdir(outpath)
-plt.savefig('%s_2D_norm_side.png' % file, dpi=600)
+plt.savefig('%s_2D_pos_side.png' % file, dpi=600)
 
 
 #%% plot multiple measurements xy plane

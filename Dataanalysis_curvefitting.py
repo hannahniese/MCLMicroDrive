@@ -32,7 +32,7 @@ from pylab import meshgrid,cm,imshow,contour,clabel,colorbar,axis,title,show
 #masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_07_25_20x_intsquared"
 masterpath  =  r"C:\Users\Hannah Niese\Documents\GitHub\MCLMicroDrive\Measurements\22_09_27_20x_singlepixels"
 #file        =   '22-07-25_16-28-16_data'
-file        =   '22-09-27_10-20-10_data'
+file        =   '22-09-27_10-20-10_data_onepixel'
 ftype       =   '.txt'
 datafile    =   masterpath + '\\' + file + ftype
 outpath     =   masterpath + '\\analysis'
@@ -44,7 +44,7 @@ data    = np.loadtxt(datafile, delimiter=',',  skiprows=1)
 
 # import sideprofile
 #side_file   =   '22-07-25_14-47-33_data'
-side_file        =   '22-09-27_10-20-10_data'
+side_file        =   '22-09-27_10-20-10_data_onepixel'
 ftype       =   '.txt'
 side_datafile    =   masterpath + '\\' + side_file + ftype
 
@@ -148,10 +148,10 @@ I_side_squared  = np.square(I_side_pos)
 
 #%%
 
-yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_pos)
+yi, zi, Ii_4, gridres = pointsongrid(y_side, z_side, I_side_pos)
 #yi, zi, Ii, gridres = pointsongrid(y_side, z_side, I_side_norm)
 
-plt.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1.5)
+plt.imshow(Ii_4, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1.5)
 plt.axis('equal')
 plt.xlabel('x-coordinate [mm]')
 plt.ylabel('y-coordinate [mm]')
@@ -166,7 +166,7 @@ plt.savefig('%s_interpolated_pos.png' % file, dpi=600)
 ymin = 1
 ymax = 705
 
-z = 540
+z = 550
 
 
 # fit gaussian through line plots
@@ -363,7 +363,7 @@ ax.set_title('Gauss')
 
 #%% plotting all fits together
 
-fig, (ax2, ax3, ax1) = plt.subplots(figsize=(9,3), gridspec_kw={'width_ratios': [1, 1, 2]}, ncols=3)
+fig, (ax2, ax3, ax1) = plt.subplots(figsize=(8,3), gridspec_kw={'width_ratios': [1, 1, 2]}, ncols=3)
 
 overview = ax1.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=0, vmax=1.5)
 ax1.axis('equal')
@@ -426,17 +426,18 @@ x = np.arange(xmin,xmax,res)
 z = np.arange(zmin,zmax,res)
 x,z = meshgrid(x,z)
 
-H = pixel(x, 1.91, z)
-I = pixel(x, 1.915, z)
-J = pixel(x, 1.92, z)
+H = pixel(x, 1.905, z)
+I = pixel(x, 1.905-0.007, z)
+J = pixel(x, 1.905-(2*0.007), z)
 
 #L = pixel(x, -1.5, z)
 #M = pixel(x, -1.506, z)
 
 #N = pixel(x, -1.525, z)
 
-added = H #+ I + J + K + L + M + N 
-squared = np.square(added)
+two = H+I #+ I + J + K + L + M + N 
+three = H+I+J
+twogap = H + J
 
 raster1 = np.square(H + J ) #+ L + N
 raster2 = np.square(I)
@@ -459,7 +460,9 @@ two = ax3.imshow(H+I+J, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin
 ax3.set_title('3 pixel')
 ax3.axes.yaxis.set_ticklabels([])
 
-#fig.colorbar(add, ax=ax3)
+
+os.chdir(outpath)
+plt.savefig('%s_1_2_3_pixels_simulated.png' % side_file, dpi=600)
 
 #%% single image
 fig, (ax1) = plt.subplots(ncols=1)
@@ -470,9 +473,11 @@ ax1.set_title('1, 2, 4 pixels')
 
 #%% data and simulation
 
+vmax=2.5
+
 fig, (ax1, ax2) = plt.subplots(figsize=(6,3), ncols=2)
 
-overview = ax1.imshow(Ii, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=vmin, vmax=1.5)
+overview = ax1.imshow(Ii_4, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=vmin, vmax=vmax)
 ax1.axis('equal')
 ax1.set_xlabel('x-coordinate [mm]')
 ax1.set_ylabel('z-coordinate [mm]')
@@ -480,14 +485,63 @@ ax1.set_title('Measured data')
 ax1.set_aspect('equal', 'box')
 #colorbar(overview, ax=ax1)
 
-one = ax2.imshow(added, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=1.5, interpolation = 'none')
+one = ax2.imshow(twogap, cmap='viridis', extent=[xmin, xmax, zmin, zmax,], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
 ax2.set_title('Simulated data')
 ax2.set_xlabel('x-coordinate [mm]')
 ax2.axes.yaxis.set_ticklabels([])
 
 os.chdir(outpath)
-plt.savefig('%s_measured_simulated.png' % side_file, dpi=600)
+plt.savefig('%s_measured_simulated_twogap.png' % side_file, dpi=600)
 
+
+#%% data and simulation 1, 2, 3 pixels - data taken 2022-09-27
+
+vmax=2.5
+
+fig, ((ax1, ax2, ax3, cax1), (ax4, ax5, ax6, cax2)) = plt.subplots(figsize=(7,4), gridspec_kw={'width_ratios': [4, 4, 4, 0.25]}, nrows=2, ncols=4)
+
+sim_1 = ax1.imshow(H, cmap='viridis', extent=[xmin, xmax, zmin, zmax], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax1.set_title('1 Pixel')
+ax1.set_ylabel('z-coordinate [mm]')
+ax1.axes.xaxis.set_ticklabels([])
+#ax1.contour(add, origin='lower', colors=['white'])
+
+sim_2 = ax2.imshow(H+I, cmap='viridis', extent=[xmin, xmax, zmin, zmax], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax2.set_title('2 Pixels')
+ax2.axes.yaxis.set_ticklabels([])
+ax2.axes.xaxis.set_ticklabels([])
+
+sim_3 = ax3.imshow(H+I+J, cmap='viridis', extent=[xmin, xmax, zmin, zmax], origin = 'lower', vmin=vmin, vmax=vmax, interpolation = 'none')
+ax3.set_title('3 Pixels')
+ax3.axes.xaxis.set_ticklabels([])
+ax3.axes.yaxis.set_ticklabels([])
+
+
+data_1 = ax4.imshow(Ii_1, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=vmin, vmax=vmax)
+ax4.axis('equal')
+ax4.set_xlabel('x-coordinate [mm]')
+ax4.set_ylabel('z-coordinate [mm]')
+ax4.set_aspect('equal', 'box')
+#colorbar(overview, ax=ax1)
+
+ax5.imshow(Ii_2, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=vmin, vmax=vmax)
+ax5.axis('equal')
+ax5.set_xlabel('x-coordinate [mm]')
+ax5.set_aspect('equal', 'box')
+#colorbar(overview, ax=ax1)
+ax5.axes.yaxis.set_ticklabels([])
+
+ax6.imshow(Ii_3, cmap='viridis', extent=(yi.min(), yi.max(), zi.min(), zi.max()), origin='lower', vmin=vmin, vmax=vmax)
+ax6.axis('equal')
+ax6.set_xlabel('x-coordinate [mm]')
+ax6.set_aspect('equal', 'box')
+ax6.axes.yaxis.set_ticklabels([])
+
+fig.colorbar(sim_1, cax=cax1)
+fig.colorbar(data_1, cax=cax2)
+
+os.chdir(outpath)
+plt.savefig('%s_measured_simulated_1-2-3.png' % side_file, dpi=1200)
 
 #%% recreate the three small pixels
 
